@@ -32,7 +32,7 @@ d_combine_swimming <- bind_rows(d_reg_swimming, d_max_swimming) %>%
   left_join(Mass_SKR, by = "Species") %>% 
   mutate(Mass = (Length^slope)*10^intercept, 
          TPM = `Thrust Power`/Mass,
-         Species = as_factor(Species, levels = c("Minke", "Humpback", "Fin", "Blue"))) %>% 
+         Species = factor(Species, levels = c("Minke", "Humpback", "Fin", "Blue"))) %>% 
   left_join(morphometrics, by = c("Species", "Individual")) 
 
 
@@ -87,16 +87,23 @@ d_combine_swimming_summarized <- d_combine_swimming %>%
             Length = first(Length),
             Speed = first(Speed),
             FlukeArea = first(`Fluke Area (m)`)) %>% 
+  ungroup %>% 
   mutate(Species = factor(Species, levels = species_size$Species),
-         effort_type = factor(effort_type),
-         effort_type = arrange(-desc(effort_type))) %>% 
+         effort_type = factor(effort_type, levels = c("Normal", "Max")),
+         Spec_Effort = paste(Species, effort_type,sep="-"),
+         Spec_Effort = factor(Spec_Effort, levels = c("Minke-Normal", "Minke-Max", "Humpback-Normal", "Humpback-Max", 
+                                                      "Fin-Normal", "Fin-Max", "Blue-Normal", "Blue-Max"))) %>% 
   filter(Species %in% c("Humpback", "Blue")) #This selects only Blue and Humpback
 
 #Color Coding Species
-pal <- c("Minke" = "firebrick3",  "Humpback" = "gray30", "Fin" = "chocolate3", "Blue" = "dodgerblue2")
+#pal <- c("Minke" = "firebrick3",  "Humpback" = "gray30", "Fin" = "chocolate3", "Blue" = "dodgerblue2")
+
+#Color Coding Effort
+pal <- c("Max" = "red3", "Normal"  = "royalblue2")
+
 
 #################
-# Mass-specific Thrust Figures
+# Mass-specific Thrust Figures ----
 #################
 
 # TPM vs.FA
@@ -148,19 +155,19 @@ stats1 <- lm(mean_TPM ~ Speed, data = d_reg_swimming_summarized)
 summary(stats1)
 
 ##############
-# Normal swimming kinematics
+# Normal swimming kinematics, four-part figure ----
 ##############
 #Thrust
-Pt <- d_combine_swimming_summarized %>% 
-  mutate(Spec_Effort = paste(Species, effort_type,sep="-")) %>% 
-  group_by(Species, effort_type) %>% 
-  ggplot(aes(Species, mean_TPM, color = Species, shape = effort_type)) + 
-  geom_boxplot(aes(group = Spec_Effort),
-               notch = TRUE,
-               outlier.shape = NA) + 
+Pt <- ggplot(d_combine_swimming_summarized,
+         aes(Species, mean_TPM, color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
-                      ymax = mean_TPM + se_TPM),
-                  position = position_jitterdodge(), size = .4) +
+                      ymax = mean_TPM + se_TPM,
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6), 
+                  alpha = 0.6, 
+                  size = .4) +
   scale_color_manual(values = pal) + 
   labs(x = "Species",
        y = 'Mass Specific Thrust (N/kg)') +
@@ -169,13 +176,16 @@ Pt <- d_combine_swimming_summarized %>%
 Pt
 
 # Drag
-Cd <- ggplot(d_reg_swimming_summarized, 
-             aes(Species, mean_drag, color = Species)) + 
-  geom_boxplot(notch = TRUE,
-               outlier.shape = NA) + 
+Cd <- ggplot(d_combine_swimming_summarized, 
+             aes(Species, mean_drag, color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) +   
   geom_pointrange(aes(ymin = mean_drag - se_drag, 
-                      ymax = mean_drag + se_drag),
-                  position = position_jitter(width = 0.25), size = .4) +
+                      ymax = mean_drag + se_drag, 
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6), 
+                  alpha = 0.6, 
+                  size = .4) +
   scale_color_manual(values = pal) + 
   labs(x = "Species",
        y = 'Drag Coefficient') +
@@ -184,13 +194,16 @@ Cd <- ggplot(d_reg_swimming_summarized,
 Cd
 
 # Reynolds Number
-Re <- ggplot(d_reg_swimming_summarized, 
-             aes(Species, mean_Re, color = Species)) + 
-  geom_boxplot(notch = TRUE,
-               outlier.shape = NA) + 
+Re <- ggplot(d_combine_swimming_summarized, 
+             aes(Species, mean_Re,color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_Re - se_Re, 
-                      ymax = mean_Re + se_Re),
-                  position = position_jitter(width = 0.25), size = .4) +
+                      ymax = mean_Re + se_Re,
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6),
+                  alpha = 0.6, 
+                  size = .4) +
   scale_color_manual(values = pal) + 
   labs(x = "Species",
        y = 'Reynolds Number') +
@@ -199,13 +212,16 @@ Re <- ggplot(d_reg_swimming_summarized,
 Re
 
 # Efficiency
-E <- ggplot(d_reg_swimming_summarized, 
-            aes(Species, mean_E, color = Species)) + 
-  geom_boxplot(notch = TRUE,
-               outlier.shape = NA) + 
+E <- ggplot(d_combine_swimming_summarized, 
+            aes(Species, mean_E, color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_E - se_E, 
-                      ymax = mean_E + se_E),
-                  position = position_jitter(width = 0.25), size = .4) +
+                      ymax = mean_E + se_E, 
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6), 
+                  alpha = 0.6, 
+                  size = .4) +
   scale_color_manual(values = pal) + 
   labs(x = "Species",
        y = 'Propulsive Efficiency') +
@@ -215,10 +231,12 @@ E
 
 normal_swimming_plot <- ggarrange(Pt, Cd, Re, E, 
                                   ncol = 2, nrow = 2,  
-                                  labels = c("A", "B", "C", "D"))
-annotate_figure(normal_swimming_plot,
-                top = text_grob("Normal Swimming",
-                                face = "bold", size = 14))
+                                  labels = c("A", "B", "C", "D"),
+                                  common.legend = TRUE)
+
+# annotate_figure(normal_swimming_plot,
+#                 top = text_grob("Normal Swimming",
+#                                 face = "bold", size = 14))
 
 ggplot(d_reg_swimming_summarized, aes(Length, mean_E, color = Species)) +
   geom_point() +
