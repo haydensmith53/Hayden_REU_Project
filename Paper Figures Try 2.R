@@ -130,9 +130,173 @@ pal <- c("Minke" = "firebrick3",  "Humpback" = "gray30", "Fin" = "chocolate3", "
 ###Graphs Start Here###
 #######################
 
+######
+#Normal and Maximum Effort Swimming Four part figure
+######
 
-#Four part figure 
+#Thrust
+Pt <- ggplot(d_combine_swimming_summarized,
+             aes(Species, mean_TPM, color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) + 
+  geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
+                      ymax = mean_TPM + se_TPM,
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6), 
+                  alpha = 0.6, 
+                  size = .4) +
+  scale_color_manual(values = pal) + 
+  labs(x = "Species",
+       y = 'Mean Mass-Specific Thrust (N/kg)', 
+       color = "Effort type", 
+       shape = "Effort type") +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "none") 
+Pt
+
+# Drag
+Cd <- ggplot(d_combine_swimming_summarized, 
+             aes(Species, mean_drag, color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) +   
+  geom_pointrange(aes(ymin = mean_drag - se_drag, 
+                      ymax = mean_drag + se_drag, 
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6), 
+                  alpha = 0.6, 
+                  size = .4) +
+  scale_color_manual(values = pal) + 
+  labs(x = "Species",
+       y = 'Drag Coefficient') +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "none")
+Cd
+
+# Reynolds Number
+Re <- ggplot(d_combine_swimming_summarized, 
+             aes(Species, mean_Re,color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) + 
+  geom_pointrange(aes(ymin = mean_Re - se_Re, 
+                      ymax = mean_Re + se_Re,
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6),
+                  alpha = 0.6, 
+                  size = .4) +
+  scale_color_manual(values = pal) + 
+  labs(x = "Species",
+       y = 'Reynolds Number') +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "none") 
+Re
+
+# Efficiency
+E <- ggplot(d_combine_swimming_summarized, 
+            aes(Species, mean_E, color = effort_type)) + 
+  geom_boxplot(outlier.shape = NA,
+               show.legend = FALSE) + 
+  geom_pointrange(aes(ymin = mean_E - se_E, 
+                      ymax = mean_E + se_E, 
+                      shape = effort_type),
+                  position = position_jitterdodge(jitter.width = 0.6), 
+                  alpha = 0.6, 
+                  size = .4) +
+  scale_color_manual(values = pal) + 
+  labs(x = "Species",
+       y = 'Propulsive Efficiency') +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "none") 
+E
+
+#Combine for four parts
+normal_swimming_plot <- ggarrange(Pt, Cd, Re, E, 
+        ncol = 2, nrow = 2,  
+        labels = c("A", "B", "C", "D"),
+        common.legend = TRUE)
+normal_swimming_plot
 
 
+############
+#Thrust Per Unit Mass Plots
+############
 
+#TPM vs. Speed
+TPMvSpeed <- ggplot(d_combine_swimming_summarized, 
+                    aes(mean_speed, mean_TPM, color = effort_type)) +
+  geom_smooth(method = 'lm') + 
+  geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
+                      ymax = mean_TPM + se_TPM),
+                  position = position_jitter(width = 0.05), size = 0.5) +
+  scale_color_manual(values = pal) + 
+  facet_wrap(.~Species) +
+  labs(x = ('Speed (m/s)'),
+       y = 'Mean mass-specific thrust (N/kg)', 
+       color = "Effort type") +
+  ggtitle("Mass-Specific Thrust vs. Speed") +
+  theme_classic(base_size = 14) + 
+  theme(plot.title = element_text(hjust = 0.5))
+TPMvSpeed
+
+
+#TPM vs. Fluke Area
+TPMvFA <- ggplot(d_combine_swimming_summarized, aes(FlukeArea, mean_TPM)) +
+  geom_smooth(method = 'lm', aes(group = Species), color = 'gray50') + 
+  geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
+                      ymax = mean_TPM + se_TPM, 
+                      shape = effort_type,
+                      color = Species),
+                  position = position_jitter(width = 0.05), size = 0.5) +
+  scale_color_manual(values = pal) + 
+  labs(x = ('Fluke Area' ~m^2),
+       y = ('Mean mass-specific thrust (N/kg)'),
+       shape = "Effort type",
+       color = ("Species")) + 
+  ggtitle("Mass-Specific Thrust vs. Fluke Area") +
+  theme_classic(base_size = 14) + 
+  theme(plot.title = element_text(hjust = 0.5))
+TPMvFA
+
+
+############
+#Propulsive Efficiency graphs
+############
+
+#Propulsive Efficiency vs. Total Length
+PEvTL <- ggplot(d_combine_swimming_summarized, aes(Length, mean_E)) +
+  geom_smooth(method = 'lm', aes(group = Species), color = 'gray50') + 
+  geom_pointrange(aes(ymin = mean_E - se_E, 
+                      ymax = mean_E + se_E, 
+                      #shape = effort_type,
+                      color = Species),
+                  position = position_jitter(width = 0.05), size = 0.5) +
+  scale_color_manual(values = pal) + 
+  #  facet_wrap(~Species, scales = "free_x") +
+  labs(x = ("Total Length (m)"),
+       y = "Propulsive Efficiency",
+       #shape = "Effort Type",
+       color = "Species") + 
+  ggtitle("Propulsive Efficiency vs.Total Length") +
+  theme_classic(base_size = 14) + 
+  theme(plot.title = element_text(hjust = 0.5))
+PEvTL 
+
+
+#Propulsive Efficiency vs. Speed
+PEvSpeed <- ggplot(d_combine_swimming_summarized, aes(Speed, mean_E)) +
+  geom_smooth(method = 'lm', aes(group = Species), color = 'gray50') + 
+  geom_pointrange(aes(ymin = mean_E - se_E, 
+                      ymax = mean_E + se_E, 
+                      #shape = effort_type,
+                      color = Species),
+                  position = position_jitter(width = 0.05), size = 0.5) +
+  scale_color_manual(values = pal) + 
+  #  facet_wrap(~Species, scales = "free_x") +
+  labs(x = ("Speed (m/s"),
+       y = "Propulsive Efficiency",
+       #shape = "Effort Type",
+       color = "Species") + 
+  ggtitle("Propulsive Efficiency vs.Speed") +
+  theme_classic(base_size = 14) + 
+  theme(plot.title = element_text(hjust = 0.5))
+PEvSpeed
 
