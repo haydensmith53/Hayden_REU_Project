@@ -25,7 +25,7 @@ Mass_SKR <- tribble(
 
 
 #Brining in data for morphometrics and all flukebeat data 
-morphometrics <- read_csv("10:2 Data Sheet For Hayden.csv") %>% 
+morphometrics <- read_csv("Data Sheet For Hayden_102.csv") %>% 
   rename(Individual = `ID #`,
          ID = "Whale",
          `Common name` = Species) %>% 
@@ -39,7 +39,7 @@ morphometrics <- read_csv("10:2 Data Sheet For Hayden.csv") %>%
 
 
 #All Data
-d_all_swimming <- read_csv("10:2 Droned Tailbeats Info Hayden.csv") %>% 
+d_all_swimming <- read_csv("Droned Tailbeats Info Hayden_102.csv") %>% 
   left_join(select(morphometrics, Individual, ID), by = "Individual") %>% 
   select(-(X15:X19)) %>% 
   rename(`Common name` = Species) %>% 
@@ -51,7 +51,7 @@ d_all_swimming <- read_csv("10:2 Droned Tailbeats Info Hayden.csv") %>%
 
 
 #Separating max flukebeats from all data
-d_max_swimming <- read_csv("10:2 AllWhaleMaxEffortBeats.csv") %>% 
+d_max_swimming <- read_csv("AllWhaleMaxEffortBeats_102.csv") %>% 
   rename(`Common name` = Species) %>% 
   mutate(Species = factor(case_when(
     `Common name` == "Blue" ~ "Balaenoptera musculus",
