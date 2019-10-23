@@ -25,7 +25,7 @@ Mass_SKR <- tribble(
 
 
 #Brining in data for morphometrics and all flukebeat data 
-morphometrics <- read_csv("10:2 Data Sheet For Hayden.csv") %>% 
+morphometrics <- read_csv("10:14 Data Sheet For Hayden.csv") %>% 
   rename(Individual = `ID #`,
          ID = "Whale",
          `Common name` = Species) %>% 
@@ -69,7 +69,7 @@ d_max_swimming <- read_csv("10:2 AllWhaleMaxEffortBeats.csv") %>%
 #Separating normal fluekbeats from all data
 d_reg_swimming <- d_all_swimming %>%  
   anti_join(d_max_swimming, by = colnames(d_all_swimming)[c(1:4, 7:8, 15)]) %>% 
-  mutate(effort_type = "Normal") %>%
+  mutate(effort_type = "All") %>%
   left_join(Mass_SKR, by = "Species") %>% 
   mutate(Mass = (Length^slope)*10^intercept, 
          TPM = `Thrust Power`/Mass) %>% 
@@ -137,10 +137,10 @@ d_combine_swimming_summarized <- d_combine_swimming %>%
   ungroup %>% 
   left_join(select(morphometrics, -`Common name`), by = c("Species", "Individual")) %>% 
   mutate(Species = factor(Species, levels = species_size$Species),
-         effort_type = factor(effort_type, levels = c("Normal", "Max")),
+         effort_type = factor(effort_type, levels = c("Normal", "All")),
          Spec_Effort = paste(Species, effort_type,sep="-"),
-         Spec_Effort = factor(Spec_Effort, levels = c("Minke-Normal", "Minke-Max", "Humpback-Normal", "Humpback-Max", 
-                                                      "Fin-Normal", "Fin-Max", "Blue-Normal", "Blue-Max"))) 
+         Spec_Effort = factor(Spec_Effort, levels = c("Minke-Normal", "Minke-All", "Humpback-Normal", "Humpback-All", 
+                                                      "Fin-Normal", "Fin-All", "Blue-Normal", "Blue-All"))) 
 
 
 
@@ -163,15 +163,15 @@ Pt <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera phys
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
                       ymax = mean_TPM + se_TPM,
-                      shape = abbr_binom(Species),
-                      color = effort_type),
+                      shape = abbr_binom(effort_type),
+                      color = Species),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
   labs(x = "Species",
        y = 'Mean Mass-Specific Thrust (N/kg)',
-       color = "Effort type",
-       shape = "Species") +
+       color = "Species",
+       shape = "Effort type") +
   theme_classic(base_size = 14) +
   theme(axis.text.x = element_text(face = "italic"),
         legend.position = "none")  + 
@@ -185,15 +185,15 @@ Cd <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera phys
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_drag -se_drag, 
                       ymax = mean_drag + se_drag,
-                      shape = abbr_binom(Species),
-                      color = effort_type),
+                      shape = abbr_binom(effort_type),
+                      color = Species),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
   labs(x = "Species",
        y = 'Drag coefficient',
-       color = "Effort type",
-       shape = "Species") +
+       color = "Species",
+       shape = "Effort tyep") +
   theme_classic(base_size = 14) +
   theme(axis.text.x = element_text(face = "italic"),
         legend.position = "none") + 
@@ -207,15 +207,15 @@ Re <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera phys
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_Re - se_Re, 
                       ymax = mean_Re + se_Re,
-                      shape = abbr_binom(Species),
-                      color = effort_type),
+                      shape = abbr_binom(effort_type),
+                      color = Species),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
   labs(x = "Species",
        y = 'Reynolds number',
-       color = "Effort type",
-       shape = "Species") +
+       color = "Species",
+       shape = "Effort type") +
   theme_classic(base_size = 14) +
   theme(axis.text.x = element_text(face = "italic"),
         legend.position = "none") + 
@@ -229,15 +229,15 @@ E <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physa
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_E - se_E, 
                       ymax = mean_E + se_E,
-                      shape = abbr_binom(Species),
-                      color = effort_type),
+                      shape = abbr_binom(effort_type),
+                      color = Species),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
   labs(x = "Species",
        y = 'Propulsive Efficiency',
-       color = "Effort type",
-       shape = "Species") +
+       color = "Species",
+       shape = "Effort type") +
   theme_classic(base_size = 14) +
   theme(axis.text.x = element_text(face = "italic"),
         legend.position = "none") + 
@@ -260,17 +260,19 @@ dev.copy2pdf(file="Swimming_plot.pdf", width=10, height=10)
 #TPM vs. Speed
 TPMvSpeed <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"), 
                     aes(mean_speed, mean_TPM,
-                        color = effort_type)) +
+                        color = Species),
+                    shape = effort_type) +
   geom_smooth(method = 'lm') + 
   geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
                       ymax = mean_TPM + se_TPM,
-                      shape = abbr_binom(Species)), 
+                      shape = abbr_binom(effort_type),
+                      color = Species),
                   alpha = 0.6, 
                   size = .4) +
   labs(x = ('Speed (m/s)'),
-       y = 'Mean mass-specific thrust (N/kg)', 
-       shape = "Species",
-       color = "Effort type") +
+       y = 'Mass-specific thrust (N/kg)', 
+       shape = "Effort type",
+       color = "Species") +
  #ggtitle("Mass-Specific Thrust vs. Speed") +
  theme_classic(base_size = 14) + 
   scale_shape_discrete(guide = guide_legend(label.theme = element_text(angle = 0, face = "italic")))
@@ -278,32 +280,59 @@ TPMvSpeed
 
 dev.copy2pdf(file="TPMvSpeed.pdf", width=8, height=6)
 
-
-
-#TPM vs. Fluke Area
-TPMvFA <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),  
-                 aes(`Fluke Area (m)`, mean_TPM,
-                     color = effort_type)) +
+#TPM vs. Total Length
+TPMvTL <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"), 
+                    aes(Length, mean_TPM,
+                        color = Species),
+                 shape = effort_type) +
   geom_smooth(method = 'lm') + 
   geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
                       ymax = mean_TPM + se_TPM,
-                      shape = abbr_binom(Species),
-                      color = effort_type),
+                      shape = abbr_binom(effort_type),
+                      color = Species), 
                   alpha = 0.6, 
                   size = .4) +
-  labs(x = ('Fluke Area' ~m^2),
-       y = ('Mean mass-specific thrust (N/kg)'),
-       shape = "Species",
-       color = "Effort type") + 
+  labs(x = ('Total Length (m)'),
+       y = 'Mmass-specific thrust (N/kg)', 
+       shape = "Effort type",
+       color = "Species") +
+  ggtitle("Mass-Specific Thrust vs. Total Length") +
+  theme_classic(base_size = 14) + 
+  scale_shape_discrete(guide = guide_legend(label.theme = element_text(angle = 0, face = "italic")))
+TPMvTL
+
+dev.copy2pdf(file="TPMvTL.pdf", width=8, height=6)
+
+#TPM vs. Fluke Area/Total Length 
+TPMvFA.TL <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),  
+                 aes(`FA/L`, mean_TPM,
+                     color = Species,
+                     shape = effort_type)) +
+  geom_smooth(method = 'lm') + 
+  geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
+                      ymax = mean_TPM + se_TPM,
+                      shape = abbr_binom(effort_type),
+                      color = Species),
+                  alpha = 0.6, 
+                  size = .4) +
+  labs(x = ('Fluke Area/Total Length (m)'),
+       y = ('Mass-specific thrust (N/kg)'),
+       shape = "Effort type",
+       color = "Species") + 
 #  ggtitle("Mass-Specific Thrust vs. Fluke Area") +
   theme_classic(base_size = 14) + 
   # theme(strip.text = element_text(face = "italic"),
   #   plot.title = element_text(hjust = 0.5)) + 
   scale_shape_discrete(guide = guide_legend(label.theme = element_text(angle = 0, face = "italic")))
-TPMvFA
+TPMvFA.TL
 
-dev.copy2pdf(file="TPMvFA.pdf", width=8, height=6)
+dev.copy2pdf(file="TPMvFA/TL.pdf", width=8, height=6)
 
+TPM_plot <- ggarrange(TPMvSpeed, TPMvTL, TPMvFA.TL,
+                           ncol = 2, nrow = 2,
+                           labels = c("A", "B", "C"),
+                           common.legend = TRUE)
+TPM_plot
 
 ############
 #Propulsive Efficiency graphs
@@ -312,18 +341,19 @@ dev.copy2pdf(file="TPMvFA.pdf", width=8, height=6)
 #Propulsive Efficiency vs. Total Length
 PEvTL <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),  
                 aes(Length, mean_E,
-                    color = effort_type)) +
+                    color = Species,
+                    shape = effort_type)) +
   geom_smooth(method = 'lm') + 
   geom_pointrange(aes(ymin = mean_E - se_E, 
                       ymax = mean_E + se_E,
-                      shape = abbr_binom(Species),
-                      color = effort_type),
+                      shape = abbr_binom(effort_type),
+                      color = Species),
                   alpha = 0.6, 
                   size = .4) +
   labs(x = ('Total length (m)'),
        y = ('Propulsive efficiency'),
-       shape = "Species",
-       color = "Effort type") + 
+       shape = "Effort_type",
+       color = "Species") + 
   theme_classic(base_size = 14) + 
   # theme(strip.text = element_text(face = "italic"),
   #   plot.title = element_text(hjust = 0.5)) + 
@@ -336,18 +366,19 @@ dev.copy2pdf(file="PEvTL.pdf", width=8, height=6)
 #Propulsive Efficiency vs. Speed
 PEvSpeed <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),  
                    aes(Speed, mean_E,
-                       color = effort_type)) +
+                       color = Species,
+                       shape = effort_type)) +
   geom_smooth(method = 'lm') + 
   geom_pointrange(aes(ymin = mean_E - se_E, 
                       ymax = mean_E + se_E,
-                      shape = abbr_binom(Species),
-                      color = effort_type),
+                      shape = abbr_binom(effort_type),
+                      color = Species),
                   alpha = 0.6, 
                   size = .4) +
   labs(x = ('Speed (m/s)'),
        y = ('Propulsive efficiency'),
-       shape = "Species",
-       color = "Effort type") + 
+       shape = "Effort type",
+       color = "Species") + 
   theme_classic(base_size = 14) + 
   # theme(strip.text = element_text(face = "italic"),
   #   plot.title = element_text(hjust = 0.5)) + 
@@ -356,3 +387,32 @@ PEvSpeed
 
 dev.copy2pdf(file="PEvSpeed.pdf", width=8, height=6)
 
+PE_plot <- ggarrange(PEvSpeed, PEvTL, 
+                           ncol = 2, nrow = 2,  
+                           labels = c("A", "B"),
+                           common.legend = TRUE)
+PE_plot
+
+
+
+
+TPMvFA <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),  
+                 aes(`FA/L`, mean_TPM,
+                     color = effort_type)) +
+  geom_smooth(method = 'lm') + 
+  geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
+                      ymax = mean_TPM + se_TPM,
+                      shape = abbr_binom(Species),
+                      color = effort_type),
+                  alpha = 0.6, 
+                  size = .4) +
+  labs(x = ('Fluke Area' ~m^2),
+       y = ('Mean mass-specific thrust (N/kg)'),
+       shape = "Species",
+       color = "Effort type") + 
+  #  ggtitle("Mass-Specific Thrust vs. Fluke Area") +
+  theme_classic(base_size = 14) + 
+  # theme(strip.text = element_text(face = "italic"),
+  #   plot.title = element_text(hjust = 0.5)) + 
+  scale_shape_discrete(guide = guide_legend(label.theme = element_text(angle = 0, face = "italic")))
+TPMvFA
