@@ -197,7 +197,7 @@ Cd <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera phys
   labs(x = "Species",
        y = 'Drag coefficient',
        color = "Species",
-       shape = "Effort tyep") +
+       shape = "Effort type") +
   theme_classic(base_size = 14) +
   theme(axis.text.x = element_text(face = "italic"),
         legend.position = "none") + 
@@ -281,6 +281,18 @@ TPMvSpeed <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenopte
  theme_classic(base_size = 14) + 
   scale_shape_discrete(guide = guide_legend(label.theme = element_text(angle = 0, face = "italic")))
 TPMvSpeed
+
+statsbbs <- lm(mean_TPM ~ mean_speed, 
+              data = filter(d_combine_swimming_summarized, Species == "Minke"))
+summary(statsbbs)
+
+statsmns <- lm(mean_TPM ~ mean_speed, 
+              data = filter(d_combine_swimming_summarized, Species == "Humpback"))
+summary(statsmns)
+
+statsbws <- lm(mean_TPM ~ mean_speed, 
+              data = filter(d_combine_swimming_summarized, Species == "Blue"))
+summary(statsbws)
 
 dev.copy2pdf(file="TPMvSpeed.pdf", width=8, height=6)
 
