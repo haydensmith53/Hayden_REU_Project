@@ -1,7 +1,6 @@
  
  
 # Load packages and data----
-
 library(ggplot2)
 library(ggpubr)
 library(tidyverse)
@@ -23,13 +22,8 @@ Mass_SKR <- tribble(
   "Megaptera novaeangliae",     2.3373,  1.8535
 )
 
-
-#Brining in data for morphometrics and all flukebeat data 
-<<<<<<< HEAD
-morphometrics <- read_csv("10:14 Data Sheet For Hayden.csv") %>% 
-=======
-morphometrics <- read_csv("Data Sheet For Hayden_102.csv") %>% 
->>>>>>> 23ceed44cd5d98fe7b49107cd427a4aa7c3f7918
+#Bringing in data for morphometrics and all flukebeat data 
+morphometrics <- read_csv("10_14 Data Sheet For Hayden.csv") %>% 
   rename(Individual = `ID #`,
          ID = "Whale",
          `Common name` = Species) %>% 
@@ -38,9 +32,6 @@ morphometrics <- read_csv("Data Sheet For Hayden_102.csv") %>%
            `Common name` == "Fin" ~ "Balaenoptera physalus",
            `Common name` == "Humpback" ~ "Megaptera novaeangliae",
            `Common name` == "Minke" ~ "Balaenoptera bonaerensis")))
-  
-  
-
 
 #All Data
 d_all_swimming <- read_csv("Droned Tailbeats Info Hayden_102.csv") %>% 
@@ -163,12 +154,13 @@ pal <- c("B. bonaerensis" = "firebrick3",  "M. novaeangliae" = "gray30",  "B. mu
 #Thrust
 Pt <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),
              aes(fct_reorder(abbr_binom(Species), mean_TPM), mean_TPM)) + 
-  geom_boxplot(outlier.shape = NA,
+  geom_boxplot(aes(color = effort_type),
+               outlier.shape = NA,
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_TPM - se_TPM, 
                       ymax = mean_TPM + se_TPM,
                       shape = abbr_binom(effort_type),
-                      color = Species),
+                      color = effort_type),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
@@ -185,12 +177,13 @@ Pt
 # Drag
 Cd <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),
              aes(fct_reorder(abbr_binom(Species), mean_drag), mean_drag)) + 
-  geom_boxplot(outlier.shape = NA,
+  geom_boxplot(aes(color = effort_type),
+               outlier.shape = NA,
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_drag -se_drag, 
                       ymax = mean_drag + se_drag,
                       shape = abbr_binom(effort_type),
-                      color = Species),
+                      color = effort_type),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
@@ -207,12 +200,13 @@ Cd
 # Reynolds Number
 Re <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),
              aes(fct_reorder(abbr_binom(Species), mean_Re), mean_Re)) + 
-  geom_boxplot(outlier.shape = NA,
+  geom_boxplot(aes(color = effort_type),
+               outlier.shape = NA,
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_Re - se_Re, 
                       ymax = mean_Re + se_Re,
                       shape = abbr_binom(effort_type),
-                      color = Species),
+                      color = effort_type),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
@@ -229,12 +223,13 @@ Re
 # Efficiency
 E <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"),
             aes(fct_relevel(abbr_binom(Species), "B. bonaerensis", "M. novaeangliae"), mean_E)) + 
-  geom_boxplot(outlier.shape = NA,
+  geom_boxplot(aes(color = effort_type),
+               outlier.shape = NA,
                show.legend = FALSE) + 
   geom_pointrange(aes(ymin = mean_E - se_E, 
                       ymax = mean_E + se_E,
                       shape = abbr_binom(effort_type),
-                      color = Species),
+                      color = effort_type),
                   position = position_jitterdodge(jitter.width = 0.6), 
                   alpha = 0.8, 
                   size = .4) +
@@ -271,8 +266,8 @@ TPMvSpeed <- ggplot(filter(d_combine_swimming_summarized, Species != "Balaenopte
                       ymax = mean_TPM + se_TPM,
                       shape = abbr_binom(effort_type),
                       color = Species),
-                  alpha = 0.6, 
-                  size = .4) +
+                  alpha = 0.8, 
+                  size = .6) +
   labs(x = ('Speed (m/s)'),
        y = 'Mass-specific thrust (N/kg)', 
        shape = "Effort type",
