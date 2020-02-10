@@ -23,7 +23,7 @@ Mass_SKR <- tribble(
 )
 
 #Bringing in data for morphometrics and all flukebeat data 
-morphometrics <- read_csv("10_14 Data Sheet For Hayden.csv") %>% 
+morphometrics <- read_csv("Whale Morphometrics Hayden.csv") %>% 
   rename(Individual = `ID #`,
          ID = "Whale",
          `Common name` = Species) %>% 
@@ -34,7 +34,7 @@ morphometrics <- read_csv("10_14 Data Sheet For Hayden.csv") %>%
            `Common name` == "Minke" ~ "Balaenoptera bonaerensis")))
 
 #All Data
-d_all_swimming <- read_csv("Droned Tailbeats Info Hayden_102.csv") %>% 
+d_all_swimming <- read_csv("Droned Tailbeats Info Hayden.csv") %>% 
   left_join(select(morphometrics, Individual, ID), by = "Individual") %>% 
   select(-(X15:X19)) %>% 
   rename(`Common name` = Species) %>% 
@@ -46,7 +46,7 @@ d_all_swimming <- read_csv("Droned Tailbeats Info Hayden_102.csv") %>%
 
 
 #Separating max flukebeats from all data
-d_max_swimming <- read_csv("AllWhaleMaxEffortBeats_102.csv") %>% 
+d_max_swimming <- read_csv("Max Effort Droned Tailbeats FINAL.csv") %>% 
   rename(`Common name` = Species) %>% 
   mutate(Species = factor(case_when(
     `Common name` == "Blue" ~ "Balaenoptera musculus",
@@ -251,6 +251,20 @@ Swimming_plot <- ggarrange(Pt, Cd, Re, E,
 Swimming_plot
 
 dev.copy2pdf(file="Swimming_plot.pdf", width=10, height=10)
+
+#############
+# MST ~ U, A, L, A/L 
+# (kinematics and morphology) 
+# (Just normal, no max effort)
+############
+normal_effort <- d_combine_swimming_summarized %>% 
+  filter(!is.na(effort_type),
+         Species != "Balaenoptera physalus") 
+ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
+  geom_point(aes(color = Species)) +
+  geom_smooth(aes(color = Species), method = "lm") +
+  geom_smooth(method = "lm") +
+  theme_minimal()
 
 ############
 #Thrust Per Unit Mass Plots

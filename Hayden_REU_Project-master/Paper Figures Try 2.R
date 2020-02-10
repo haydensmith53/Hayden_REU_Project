@@ -1,4 +1,5 @@
-# Load packages and data----
+#### Load packages and data ####
+library(cowplot)
 library(ggplot2)
 library(ggpubr)
 library(tidyverse)
@@ -131,6 +132,126 @@ d_combine_swimming_summarized <- d_combine_swimming %>%
 
 #Color Coding Species
 pal <- c("B. bonaerensis" = "firebrick3",  "M. novaeangliae" = "gray30",  "B. musculus" = "dodgerblue2")
+
+#### MST ~ U, A, L, A/L ####
+# (kinematics and morphology) 
+# (Just normal, no max effort)
+normal_effort <- d_combine_swimming_summarized %>% 
+  filter(effort_type == "Normal",
+         Species != "Balaenoptera physalus") %>% 
+  mutate(sp_abbr = abbr_binom(Species))
+fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  labs(x = "Speed (m s-1)",
+       y = "Mass-Specific Thrust (N kg-1)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  theme_minimal(base_size = 12) +
+  theme(axis.title.y = element_blank(),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+fig3_L <- ggplot(normal_effort, aes(`Total Length (m)`, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  labs(y = "Mass-Specific Thrust (N kg-1)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  labs(x = "Fluke Area / Length (m)") +
+  theme_minimal(base_size = 12) +
+  theme(axis.title.y = element_blank(),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+# Combine into one figure
+fig3 <- plot_grid(fig3_U, fig3_A, fig3_L, fig3_AL,
+                  nrow = 2,
+                  align = "h",
+                  rel_widths = c(1.1, 0.9),
+                  labels = "AUTO")
+ggsave("figs/fig3.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO change text and point sizes, fit linear mixed effects model, get prediction intervals from lme
+
+#### MST ~ L, max vs normal ####
+combined_effort <- d_combine_swimming_summarized %>% 
+  filter(Species != "Balaenoptera physalus") %>% 
+  mutate(sp_abbr = abbr_binom(Species))
+# Remove outliers from figure
+fig4 <- combined_effort %>% 
+  filter(mean_TPM < 1.6) %>% 
+  ggplot(aes(`Total Length (m)`, mean_TPM, color = effort_type)) +
+  geom_point(aes(shape = sp_abbr)) +
+  geom_smooth(method = "lm") +
+  scale_color_manual(values = c(Normal = "blue", Max = "red")) +
+  labs(y = "Mass-Specific Thrust (N kg-1)") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig4.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO fit LME, get prediction intervals, change text and point sizes
+
+#### Prop Eff ~ U, L ####
+fig5_U <- normal_effort %>% 
+  ggplot(aes(mean_speed, mean_E)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  labs(x = "Speed (m s-1)",
+       y = "Propulsive Efficiency") +
+  expand_limits(y = c(0.75, 1)) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+fig5_L <- normal_effort %>% 
+  ggplot(aes(`Total Length (m)`, mean_E)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = c(0.75, 1)) +
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+fig5 <- plot_grid(fig5_U, fig5_L,
+                  nrow = 1,
+                  align = "h",
+                  rel_widths = c(1.1, 0.9),
+                  labels = "AUTO")
+ggsave("figs/fig5.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO LME, play with sizes/dimensions
+
+#### Drag ~ L w/ CFD ####
+potvin_cfd <- read_csv("potvin_cfd.csv")
+fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  geom_point(aes(color = sp_abbr), potvin_cfd, size = 3, shape = 17) +
+  scale_color_manual(values = pal) +
+  labs(y = "Drag Coefficient") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO y'know
 
 ######
 #Normal and Maximum Effort Swimming Four part figure
