@@ -132,7 +132,7 @@ d_combine_swimming_summarized <- d_combine_swimming %>%
 
 
 #### Color Palette ####
-pal <- c("B. bonaerensis" = "firebrick3",  "M. novaeangliae" = "gray30",  "B. musculus" = "dodgerblue2")
+pal <- c("B. bonaerensis" = "#009E73",  "M. novaeangliae" = "#D55E00",  "B. musculus" = "#0072B2")
 
 #### MST ~ U, A, L, A/L ####
 # (kinematics and morphology) 
@@ -142,40 +142,40 @@ normal_effort <- d_combine_swimming_summarized %>%
          Species != "Balaenoptera physalus") %>% 
   mutate(sp_abbr = abbr_binom(Species))
 fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
-  geom_point(aes(color = sp_abbr)) +
+  geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
   scale_color_manual(values = pal) +
   expand_limits(y = 0) +
   labs(x = "Speed (m s-1)",
        y = "Mass-Specific Thrust (N kg-1)") +
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 8) +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
 fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
-  geom_point(aes(color = sp_abbr)) +
+  geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
   scale_color_manual(values = pal) +
   expand_limits(y = 0) +
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 8) +
   theme(axis.title.y = element_blank(),
         legend.position = "none",
         panel.grid.minor = element_blank())
 fig3_L <- ggplot(normal_effort, aes(`Total Length (m)`, mean_TPM)) +
-  geom_point(aes(color = sp_abbr)) +
+  geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
   scale_color_manual(values = pal) +
   expand_limits(y = 0) +
   labs(y = "Mass-Specific Thrust (N kg-1)") +
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 8) +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
 fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
-  geom_point(aes(color = sp_abbr)) +
+  geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
   scale_color_manual(values = pal) +
   expand_limits(y = 0) +
   labs(x = "Fluke Area / Length (m)") +
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 8) +
   theme(axis.title.y = element_blank(),
         legend.position = "none",
         panel.grid.minor = element_blank())
@@ -184,7 +184,7 @@ fig3 <- plot_grid(fig3_U, fig3_A, fig3_L, fig3_AL,
                   nrow = 2,
                   align = "h",
                   rel_widths = c(1.1, 0.9),
-                  labels = "AUTO")
+                  labels = NULL)
 ggsave("figs/fig3.pdf", height = 90, width = 90, units = "mm", dpi = 300)
 
 ## TODO change text and point sizes, fit linear mixed effects model, get prediction intervals from lme
@@ -196,10 +196,15 @@ combined_effort <- d_combine_swimming_summarized %>%
 # Remove outliers from figure
 fig4 <- combined_effort %>% 
   filter(mean_TPM < 1.6) %>% 
-  ggplot(aes(`Total Length (m)`, mean_TPM, color = effort_type)) +
-  geom_point(aes(shape = sp_abbr)) +
-  geom_smooth(method = "lm") +
-  scale_color_manual(values = c(Normal = "blue", Max = "red")) +
+  ggplot(aes(`Total Length (m)`, mean_TPM, color = sp_abbr)) +
+  geom_point(aes(shape = effort_type)) +
+  geom_smooth(method = "lm", aes(color = effort_type, linetype = effort_type)) +
+  scale_color_manual(values = c(`B. bonaerensis` = "#009E73",
+                                `M. novaeangliae` = "#D55E00",
+                                `B. musculus` = "#0072B2",
+                                Normal = "black", Max = "black")) +
+  scale_shape_manual(values = c(Normal = 16, Max = 1)) +
+  scale_linetype_manual(values = c(Normal = "solid", Max = "longdash")) +
   labs(y = "Mass-Specific Thrust (N kg-1)") +
   theme_minimal() +
   theme(legend.position = "none",
@@ -233,26 +238,10 @@ fig5_L <- normal_effort %>%
 fig5 <- plot_grid(fig5_U, fig5_L,
                   nrow = 1,
                   align = "h",
-                  rel_widths = c(1.1, 0.9),
-                  labels = "AUTO")
-ggsave("figs/fig5.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+                  labels = NULL)
+ggsave("figs/fig5.pdf", height = 90, width = 180, units = "mm", dpi = 300)
 
 ## TODO LME, play with sizes/dimensions
-
-#### Drag ~ L w/ CFD ####
-potvin_cfd <- read_csv("potvin_cfd.csv")
-fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
-  geom_point(aes(color = sp_abbr)) +
-  geom_smooth(method = "lm", color = "black") +
-  geom_point(aes(color = sp_abbr), potvin_cfd, size = 3, shape = 17) +
-  scale_color_manual(values = pal) +
-  labs(y = "Drag Coefficient") +
-  theme_minimal() +
-  theme(legend.position = "none",
-        panel.grid.minor = element_blank())
-ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
-
-## TODO y'know
 
 #### Prop Eff ~ U (Smoothed Lines + Fish 1998 Data) ####
 fish_prop_eff <- read_csv("fish_prop_eff.csv")
@@ -270,3 +259,61 @@ fig6
 ggsave("figs/fig6.pdf", height = 90, width = 180, units = "mm", dpi = 300)
 
 ## TODO Talk to Max and figure out how this could be made better. Figure out what's going on with the blues at high speeds.
+
+#### Drag ~ L w/ CFD ####
+potvin_cfd <- read_csv("potvin_cfd.csv")
+fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  geom_point(aes(color = sp_abbr), potvin_cfd, size = 2, shape = 15) +
+  geom_smooth(method = "lm", color = "black", data = potvin_cfd, linetype = 2) +
+  scale_color_manual(values = pal) +
+  labs(y = "Drag Coefficient") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO y'know
+
+#### Prop Eff ~ RE (Smoothed Lines + Fish 1998 Data) ####
+fish_prop_eff <- read_csv("fish_prop_eff.csv")
+flukebeats_no_fins <- d_reg_swimming %>% 
+  filter(Species != "Balaenoptera physalus")
+figtest1 <- ggplot(flukebeats_no_fins, aes(`Reynolds Number`, Efficiency)) +
+  geom_smooth(aes(color = Species), se = FALSE) +
+  geom_smooth(aes(color = Species), fish_prop_eff, se = FALSE, linetype = 2) +
+  labs(x = "Reynolds Number",
+       y = "Propulsive Efficiency") +
+  theme_minimal()
+#theme(legend.position = "none",
+#     panel.grid.minor = element_blank())
+ggsave("figs/figtest1.pdf", height = 90, width = 180, units = "mm", dpi = 300)
+
+#### Max Prop Eff ~ Max RE ####
+fish_prop_eff_sum <- fish_prop_eff %>%
+  group_by(Species) %>%
+  summarize(`Max Eff` = max(Efficiency)) 
+fish_prop_RE_sum <- fish_prop_eff %>%
+  group_by(Species) %>%
+  summarize(`Max RE` = max(`Reynolds Number`)) 
+fish_prop_sums <- merge(fish_prop_eff_sum, fish_prop_RE_sum) %>%
+  rename(Individual = `Species`)
+sum_effs <- flukebeats_no_fins %>%
+  group_by(Individual) %>%
+  summarize(`Max Eff` = max(Efficiency))
+sum_REs <- flukebeats_no_fins %>%
+  group_by(Individual) %>%
+  summarize(`Max RE` = max(`Reynolds Number`)) 
+sum_effs_REs <- merge(sum_effs, sum_REs)
+figtest2 <- ggplot(sum_effs_REs, aes(`Max RE`, `Max Eff`)) +
+  geom_point(aes(color = Individual), size = 2) +
+  geom_point(data = fish_prop_sums, size = 3, shape = 1) +
+  geom_smooth(method = "lm", color = "black") +
+  labs(x = "Max Reynolds Number",
+       y = "Max Propulsive Efficiency") +
+  theme_minimal(base_size = 8) +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+figtest2
+ggsave("figs/figtest2.pdf", height = 90, width = 90, units = "mm", dpi = 300)
