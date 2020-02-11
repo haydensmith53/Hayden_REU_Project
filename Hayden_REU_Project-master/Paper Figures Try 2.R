@@ -11,7 +11,7 @@ abbr_binom <- function(binom) {
         sep = ".")
 }
 
-# Allometric equations from Shirel's paper
+#### Shirel's Allometric Eqs ####
 # creating fucntions from Shirel's paper for MW (in kg) for engulfment capacity in liters for each species where we have a known length
 Mass_SKR <- tribble(
   ~Species, ~slope,   ~intercept,
@@ -21,7 +21,7 @@ Mass_SKR <- tribble(
   "Megaptera novaeangliae",     2.3373,  1.8535
 )
 
-#Bringing in data for morphometrics and all flukebeat data 
+#### Flukebeat and Morphometric Data #### 
 morphometrics <- read_csv("10_14 Data Sheet For Hayden.csv") %>% 
   rename(Individual = `ID #`,
          ID = "Whale",
@@ -32,7 +32,7 @@ morphometrics <- read_csv("10_14 Data Sheet For Hayden.csv") %>%
            `Common name` == "Humpback" ~ "Megaptera novaeangliae",
            `Common name` == "Minke" ~ "Balaenoptera bonaerensis")))
 
-#All Data
+# All Data
 d_all_swimming <- read_csv("10_2 Droned Tailbeats Info Hayden.csv") %>% 
   left_join(select(morphometrics, Individual, ID), by = "Individual") %>% 
   select(-(X15:X19)) %>% 
@@ -43,7 +43,7 @@ d_all_swimming <- read_csv("10_2 Droned Tailbeats Info Hayden.csv") %>%
     `Common name` == "Humpback" ~ "Megaptera novaeangliae",
     `Common name` == "Minke" ~ "Balaenoptera bonaerensis")))
 
-#Separating max flukebeats from all data
+# Separating max flukebeats from all data
 d_max_swimming <- read_csv("10_2 AllWhaleMaxEffortBeats.csv") %>% 
   rename(`Common name` = Species) %>% 
   mutate(Species = factor(case_when(
@@ -58,7 +58,7 @@ d_max_swimming <- read_csv("10_2 AllWhaleMaxEffortBeats.csv") %>%
   mutate(Mass = (Length^slope)*10^intercept, 
          TPM = `Thrust Power`/Mass)
 
-#Separating normal fluekbeats from all data
+# Separating normal fluekbeats from all data
 d_reg_swimming <- d_all_swimming %>%  
   anti_join(d_max_swimming, by = colnames(d_all_swimming)[c(1:4, 7:8, 15)]) %>% 
   mutate(effort_type = "All") %>%
@@ -67,10 +67,10 @@ d_reg_swimming <- d_all_swimming %>%
          TPM = `Thrust Power`/Mass) %>% 
   left_join(select(morphometrics, -`Common name`), by = c("Species", "Individual", "ID")) 
 
-#Combining normal and max data, this is the data file that we will use 
+# Combining normal and max data, this is the data file that we will use 
 d_combine_swimming <- bind_rows(d_reg_swimming, d_max_swimming)
 
-#Summarizing d_max_swimming
+# Summarizing d_max_swimming
 species_size <- d_reg_swimming %>% 
   group_by(Species) %>% 
   summarize(Size = mean(Length)) %>% 
@@ -96,7 +96,7 @@ d_max_swimming_summarized <- d_max_swimming %>%
             Length = first(Length),
             Speed = first(Speed))
 
-#Summarizing d_combine_swimming
+# Summarizing d_combine_swimming
 species_size <- d_reg_swimming %>% 
   group_by(Species) %>% 
   summarize(Size = mean(Length)) %>% 
@@ -126,11 +126,11 @@ d_combine_swimming_summarized <- d_combine_swimming %>%
   mutate(Species = factor(Species, levels = species_size$Species)) %>%
   mutate(effort_type = replace(effort_type, effort_type == "All", "Normal"))
 
-#######################
-###Graphs Start Here###
-#######################
+###########################
+#### Graphs Start Here ####
+###########################
 
-#Color Coding Species
+#### Color Palette ####
 pal <- c("B. bonaerensis" = "firebrick3",  "M. novaeangliae" = "gray30",  "B. musculus" = "dodgerblue2")
 
 #### MST ~ U, A, L, A/L ####

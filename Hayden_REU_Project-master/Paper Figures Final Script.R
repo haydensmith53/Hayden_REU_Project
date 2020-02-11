@@ -1,0 +1,272 @@
+#### Load packages and data ####
+library(cowplot)
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+
+# Abbreviate a binomial e.g. Balaenoptera musculus -> B. musculus
+abbr_binom <- function(binom) {
+  paste(str_sub(binom, 1, 1), 
+        str_extract(binom, " .*"), 
+        sep = ".")
+}
+
+#### Shirel's Allometric Eqs ####
+# creating fucntions from Shirel's paper for MW (in kg) for engulfment capacity in liters for each species where we have a known length
+Mass_SKR <- tribble(
+  ~Species, ~slope,   ~intercept,
+  "Balaenoptera bonaerensis",     1.8454,  2.1399,
+  "Balaenoptera physalus",     2.595,  1.28388,
+  "Balaenoptera musculus",     3.3346, 0.3129,
+  "Megaptera novaeangliae",     2.3373,  1.8535
+)
+
+#### Flukebeat and Morphometric Data #### 
+morphometrics <- read_csv("10_14 Data Sheet For Hayden.csv") %>% 
+  rename(Individual = `ID #`,
+         ID = "Whale",
+         `Common name` = Species) %>% 
+  mutate(Species = factor(case_when(
+           `Common name` == "Blue" ~ "Balaenoptera musculus",
+           `Common name` == "Fin" ~ "Balaenoptera physalus",
+           `Common name` == "Humpback" ~ "Megaptera novaeangliae",
+           `Common name` == "Minke" ~ "Balaenoptera bonaerensis")))
+
+# All Data
+d_all_swimming <- read_csv("10_2 Droned Tailbeats Info Hayden.csv") %>% 
+  left_join(select(morphometrics, Individual, ID), by = "Individual") %>% 
+  rename(`Common name` = Species) %>% 
+  mutate(Species = factor(case_when(
+    `Common name` == "Blue" ~ "Balaenoptera musculus",
+    `Common name` == "Fin" ~ "Balaenoptera physalus",
+    `Common name` == "Humpback" ~ "Megaptera novaeangliae",
+    `Common name` == "Minke" ~ "Balaenoptera bonaerensis")))
+
+# Separating max flukebeats from all data
+d_max_swimming <- read_csv("10_2 AllWhaleMaxEffortBeats.csv") %>% 
+  rename(`Common name` = Species) %>% 
+  mutate(Species = factor(case_when(
+    `Common name` == "Blue" ~ "Balaenoptera musculus",
+    `Common name` == "Fin" ~ "Balaenoptera physalus",
+    `Common name` == "Humpback" ~ "Megaptera novaeangliae",
+    `Common name` == "Minke" ~ "Balaenoptera bonaerensis"))) %>% 
+  left_join(select(morphometrics, Individual, ID), by = "Individual") %>% 
+  semi_join(d_all_swimming, by = colnames(d_all_swimming)[c(1:4, 7:8, 15)]) %>% 
+  mutate(effort_type = "Max") %>%
+  left_join(Mass_SKR, by = "Species") %>% 
+  mutate(Mass = (Length^slope)*10^intercept, 
+         TPM = `Thrust Power`/Mass,
+         Speed_BL = Speed/Length)
+
+# Separating normal fluekbeats from all data
+d_reg_swimming <- d_all_swimming %>%  
+  anti_join(d_max_swimming, by = colnames(d_all_swimming)[c(1:4, 7:8, 15)]) %>% 
+  mutate(effort_type = "All") %>%
+  left_join(Mass_SKR, by = "Species") %>% 
+  mutate(Mass = (Length^slope)*10^intercept, 
+         TPM = `Thrust Power`/Mass,
+         Speed_BL = Speed/Length) %>% 
+  left_join(select(morphometrics, -`Common name`), by = c("Species", "Individual", "ID")) 
+
+# Combining normal and max data, this is the data file that we will use 
+d_combine_swimming <- bind_rows(d_reg_swimming, d_max_swimming)
+
+# Summarizing d_max_swimming
+species_size <- d_reg_swimming %>% 
+  group_by(Species) %>% 
+  summarize(Size = mean(Length)) %>% 
+  arrange(Size)
+d_max_swimming_summarized <- d_max_swimming %>%  
+  group_by(Individual) %>% 
+  summarize(mean_TPM = mean(TPM), 
+            sd_TPM = sd(TPM),
+            se_TPM = sd_TPM / sqrt(n()),
+            mean_drag = mean(`Drag Coefficient`),
+            sd_drag = sd(`Drag Coefficient`),
+            se_drag = sd_drag / sqrt(n()),
+            mean_Re = mean(`Reynolds Number`),
+            sd_Re = sd(`Reynolds Number`),
+            se_Re = sd_Re / sqrt(n()),
+            mean_E = mean(Efficiency),
+            sd_E = sd(Efficiency),
+            se_E = sd_E / sqrt(n()),
+            mean_speed = mean(Speed),
+            sd_speed = sd(Speed),
+            se_speed = sd_speed / sqrt(n()),
+            Species = first(Species),
+            Length = first(Length),
+            Speed = first(Speed))
+
+# Summarizing d_combine_swimming
+species_size <- d_reg_swimming %>% 
+  group_by(Species) %>% 
+  summarize(Size = mean(Length)) %>% 
+  arrange(Size)
+d_combine_swimming_summarized <- d_combine_swimming %>%  
+  group_by(Individual, effort_type) %>% 
+  summarize(mean_TPM = mean(TPM), 
+            sd_TPM = sd(TPM),
+            se_TPM = sd_TPM / sqrt(n()),
+            mean_drag = mean(`Drag Coefficient`),
+            sd_drag = sd(`Drag Coefficient`),
+            se_drag = sd_drag / sqrt(n()),
+            mean_Re = mean(`Reynolds Number`),
+            sd_Re = sd(`Reynolds Number`),
+            se_Re = sd_Re / sqrt(n()),
+            mean_E = mean(Efficiency),
+            sd_E = sd(Efficiency),
+            se_E = sd_E / sqrt(n()),
+            mean_speed = mean(Speed),
+            sd_speed = sd(Speed),
+            se_speed = sd_speed / sqrt(n()),
+            Species = first(Species),
+            Length = first(Length),
+            Speed = first(Speed)) %>% 
+  ungroup %>% 
+  left_join(select(morphometrics, -`Common name`), by = c("Species", "Individual")) %>% 
+  mutate(Species = factor(Species, levels = species_size$Species)) %>%
+  mutate(effort_type = replace(effort_type, effort_type == "All", "Normal"))
+
+
+#### Graphs Start Here ####
+
+
+#### Color Palette ####
+pal <- c("B. bonaerensis" = "firebrick3",  "M. novaeangliae" = "gray30",  "B. musculus" = "dodgerblue2")
+
+#### MST ~ U, A, L, A/L ####
+# (kinematics and morphology) 
+# (Just normal, no max effort)
+normal_effort <- d_combine_swimming_summarized %>% 
+  filter(effort_type == "Normal",
+         Species != "Balaenoptera physalus") %>% 
+  mutate(sp_abbr = abbr_binom(Species))
+fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  labs(x = "Speed (m s-1)",
+       y = "Mass-Specific Thrust (N kg-1)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  theme_minimal(base_size = 12) +
+  theme(axis.title.y = element_blank(),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+fig3_L <- ggplot(normal_effort, aes(`Total Length (m)`, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  labs(y = "Mass-Specific Thrust (N kg-1)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = 0) +
+  labs(x = "Fluke Area / Length (m)") +
+  theme_minimal(base_size = 12) +
+  theme(axis.title.y = element_blank(),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+# Combine into one figure
+fig3 <- plot_grid(fig3_U, fig3_A, fig3_L, fig3_AL,
+                  nrow = 2,
+                  align = "h",
+                  rel_widths = c(1.1, 0.9),
+                  labels = "AUTO")
+ggsave("figs/fig3.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO change text and point sizes, fit linear mixed effects model, get prediction intervals from lme
+
+#### MST ~ L, max vs normal ####
+combined_effort <- d_combine_swimming_summarized %>% 
+  filter(Species != "Balaenoptera physalus") %>% 
+  mutate(sp_abbr = abbr_binom(Species))
+# Remove outliers from figure
+fig4 <- combined_effort %>% 
+  filter(mean_TPM < 1.6) %>% 
+  ggplot(aes(`Total Length (m)`, mean_TPM, color = effort_type)) +
+  geom_point(aes(shape = sp_abbr)) +
+  geom_smooth(method = "lm") +
+  scale_color_manual(values = c(Normal = "blue", Max = "red")) +
+  labs(y = "Mass-Specific Thrust (N kg-1)") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig4.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO fit LME, get prediction intervals, change text and point sizes
+
+#### Prop Eff ~ U, L ####
+fig5_U <- normal_effort %>% 
+  ggplot(aes(mean_speed, mean_E)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  labs(x = "Speed (m s-1)",
+       y = "Propulsive Efficiency") +
+  expand_limits(y = c(0.75, 1)) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+fig5_L <- normal_effort %>% 
+  ggplot(aes(`Total Length (m)`, mean_E)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  scale_color_manual(values = pal) +
+  expand_limits(y = c(0.75, 1)) +
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+fig5 <- plot_grid(fig5_U, fig5_L,
+                  nrow = 1,
+                  align = "h",
+                  rel_widths = c(1.1, 0.9),
+                  labels = "AUTO")
+ggsave("figs/fig5.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO LME, play with sizes/dimensions
+
+#### Drag ~ L w/ CFD ####
+potvin_cfd <- read_csv("potvin_cfd.csv")
+fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
+  geom_point(aes(color = sp_abbr)) +
+  geom_smooth(method = "lm", color = "black") +
+  geom_point(aes(color = sp_abbr), potvin_cfd, size = 3, shape = 17) +
+  scale_color_manual(values = pal) +
+  labs(y = "Drag Coefficient") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+
+## TODO y'know
+
+#### Prop Eff ~ U (Smoothed Lines + Fish 1998 Data) ####
+fish_prop_eff <- read_csv("fish_prop_eff.csv")
+flukebeats_no_fins <- d_reg_swimming %>% 
+  filter(Species != "Balaenoptera physalus")
+fig6 <- ggplot(flukebeats_no_fins, aes(Speed, Efficiency)) +
+  geom_smooth(aes(color = Species), se = FALSE) +
+  geom_smooth(aes(color = Species), fish_prop_eff, se = FALSE, linetype = 2) +
+  labs(x = "Speed (m s-1)",
+       y = "Propulsive Efficiency") +
+  theme_minimal()
+  #theme(legend.position = "none",
+   #     panel.grid.minor = element_blank())
+fig6
+ggsave("figs/fig6.pdf", height = 90, width = 180, units = "mm", dpi = 300)
+
+## TODO Talk to Max and figure out how this could be made better. Figure out what's going on with the blues at high speeds.
