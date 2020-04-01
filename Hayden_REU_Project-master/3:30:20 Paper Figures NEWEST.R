@@ -3,6 +3,9 @@ library(cowplot)
 library(ggplot2)
 library(ggpubr)
 library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(MuMIn)
 
 # Abbreviate a binomial e.g. Balaenoptera musculus -> B. musculus
 abbr_binom <- function(binom) {
@@ -152,9 +155,24 @@ fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
 fig3_U
+
+# Stats
+# basic linear regression
 statsfig3U <- lm(mean_TPM ~ mean_speed, 
               data = d_combine_swimming_summarized)
 summary(statsfig3U)
+
+# Generalized linear mixed model
+GLMMfig3U_mean <- lmer(log(mean_TPM) ~ mean_speed + (1|Species), 
+                      data = d_combine_swimming_summarized)
+summary(GLMMfig3U_mean)
+r.squaredGLMM(GLMMfig3U_mean)
+
+
+# this model takes forever to run so I ditched it for now
+# GLMMfig3U_raw <- lmer(log(TPM) ~ Speed + (ID|`Common name`), 
+#                   data = d_reg_swimming)
+# summary(GLMMfig3U_raw)
 
 
 fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
@@ -167,9 +185,18 @@ fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
         legend.position = "none",
         panel.grid.minor = element_blank())
 fig3_A
+
+# Stats
+# basic linear regression
 statsfig3A <- lm(mean_TPM ~ `Fluke Area (m)`, 
                  data = d_combine_swimming_summarized)
 summary(statsfig3A)
+
+# Generalized linear mixed model
+GLMMfig3A_mean <- lmer(log(mean_TPM) ~ `Fluke Area (m)` + (1|Species), 
+                       data = d_combine_swimming_summarized)
+summary(GLMMfig3A_mean)
+r.squaredGLMM(GLMMfig3A_mean)
 
 
 fig3_L <- ggplot(normal_effort, aes(`Total Length (m)`, mean_TPM)) +
@@ -182,9 +209,18 @@ fig3_L <- ggplot(normal_effort, aes(`Total Length (m)`, mean_TPM)) +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
 fig3_L
+
+# Stats
+# basic linear regression
 statsfig3L <- lm(mean_TPM ~ `Total Length (m)`, 
                  data = d_combine_swimming_summarized)
 summary(statsfig3L)
+
+# Generalized linear mixed model
+GLMMfig3L_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
+                       data = d_combine_swimming_summarized)
+summary(GLMMfig3L_mean)
+r.squaredGLMM(GLMMfig3L_mean)
 
 
 fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
@@ -198,9 +234,18 @@ fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
         legend.position = "none",
         panel.grid.minor = element_blank())
 fig3_AL
+
+# Stats
+# basic linear regression
 statsfig3AL <- lm(mean_TPM ~ `FA/L`, 
                  data = d_combine_swimming_summarized)
 summary(statsfig3AL)
+
+# Generalized linear mixed model
+GLMMfig3AL_mean <- lmer(log(mean_TPM) ~ `FA/L` + (1|Species), 
+                       data = d_combine_swimming_summarized)
+summary(GLMMfig3AL_mean)
+r.squaredGLMM(GLMMfig3AL_mean)
 
 
 # Combine into one figure
@@ -238,12 +283,32 @@ fig4 <- combined_effort %>%
 ggsave("figs/fig4.pdf", height = 90, width = 90, units = "mm", dpi = 300)
 fig4
 
+# Stats
+# basic linear regression
 stats4max <- lm(mean_TPM ~ `Total Length (m)`, 
               data = filter(d_combine_swimming_summarized, effort_type == "Max"))
 summary(stats4max)
+
+
+# Generalized linear mixed model
+GLMM4max_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
+                      data = filter(d_combine_swimming_summarized, effort_type == "Max"))
+summary(GLMM4max_mean)
+r.squaredGLMM(GLMM4max_mean)
+
+
+# Stats
+# basic linear regression
 stats4normal <- lm(mean_TPM ~ `Total Length (m)`, 
                 data = filter(d_combine_swimming_summarized, effort_type == "Normal"))
 summary(stats4normal)
+
+
+# Generalized linear mixed model
+GLMM4normal_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
+                      data = filter(d_combine_swimming_summarized, effort_type == "Normal"))
+summary(GLMM4normal_mean)
+r.squaredGLMM(GLMM4normal_mean)
 
 ## TODO fit LME, get prediction intervals, change text and point sizes
 
@@ -260,9 +325,18 @@ fig5_U <- normal_effort %>%
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
 fig5_U
+
+# Stats
+# basic linear regression
 statsfig5U <- lm(mean_E ~ mean_speed, 
                   data = normal_effort)
 summary(statsfig5U)
+
+# Generalized linear mixed model
+GLMM4fig5U_mean <- lmer(mean_E ~ mean_speed + (1|Species), 
+                         data = normal_effort)
+summary(GLMM4fig5U_mean)
+r.squaredGLMM(GLMM4fig5U_mean)
 
 
 fig5_L <- normal_effort %>% 
@@ -276,9 +350,19 @@ fig5_L <- normal_effort %>%
         legend.position = "none",
         panel.grid.minor = element_blank())
 fig5_L
+
+# Stats
+# basic linear regression
 statsfig5L <- lm(mean_E ~ `Total Length (m)`, 
                  data = normal_effort)
 summary(statsfig5L)
+
+
+# Generalized linear mixed model
+GLMM4fig5L_mean <- lmer(mean_E ~ `Total Length (m)` + (1|Species), 
+                        data = normal_effort)
+summary(GLMM4fig5L_mean)
+r.squaredGLMM(GLMM4fig5L_mean)
 
 
 fig5 <- plot_grid(fig5_U, fig5_L,
@@ -321,12 +405,30 @@ fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
 ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
 fig7
 
+# Stats
+# basic linear regression
 stats7Emp <- lm(mean_drag ~ `Total Length (m)`, 
               data = normal_effort)
 summary(stats7Emp)
+
+# Generalized linear mixed model
+GLMM4fig7Emp_mean <- lmer(log(mean_drag) ~ `Total Length (m)` + (1|Species), 
+                        data = normal_effort)
+summary(GLMM4fig7Emp_mean)
+r.squaredGLMM(GLMM4fig7Emp_mean)
+
+
+# Stats
+# basic linear regression
 stats7Jean <- lm(mean_drag ~ `Total Length (m)`, 
              data = potvin_cfd)
 summary(stats7Jean)
+
+# Generalized linear mixed model
+GLMM4fig7Jean_mean <- lmer(log(mean_drag) ~ `Total Length (m)` + (1|sp_abbr), 
+                           data = potvin_cfd)
+summary(GLMM4fig7Jean_mean)
+r.squaredGLMM(GLMM4fig7Jean_mean)
 
 ## TODO y'know
 
