@@ -3,9 +3,17 @@ library(cowplot)
 library(ggplot2)
 library(ggpubr)
 library(tidyverse)
+
+install.packages("lme4")
+install.packages("lmerTest")
+install.packages("MuMin")
 library(lme4)
 library(lmerTest)
 library(MuMIn)
+
+# Custom functions ----
+# Standard error function
+SE = function(x){sd(x)/sqrt(sum(!is.na(x)))}
 
 # Abbreviate a binomial e.g. Balaenoptera musculus -> B. musculus
 abbr_binom <- function(binom) {
@@ -159,8 +167,9 @@ fig3_U
 # Stats
 # basic linear regression
 statsfig3U <- lm(mean_TPM ~ mean_speed, 
-              data = d_combine_swimming_summarized)
+              data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
 summary(statsfig3U)
+r.squaredGLMM(GLMMfig3U_mean)
 
 # Generalized linear mixed model
 GLMMfig3U_mean <- lmer(log(mean_TPM) ~ mean_speed + (1|Species), 
@@ -170,9 +179,10 @@ r.squaredGLMM(GLMMfig3U_mean)
 
 
 # this model takes forever to run so I ditched it for now
-# GLMMfig3U_raw <- lmer(log(TPM) ~ Speed + (ID|`Common name`), 
-#                   data = d_reg_swimming)
-# summary(GLMMfig3U_raw)
+GLMMfig3U_raw <- lmer(log(TPM) ~ Speed + (1|ID) + (1|`Common name`),
+                  data = d_reg_swimming)
+summary(GLMMfig3U_raw)
+r.squaredGLMM(GLMMfig3U_raw)
 
 
 fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
