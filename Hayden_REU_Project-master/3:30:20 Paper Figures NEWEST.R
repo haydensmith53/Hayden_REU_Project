@@ -166,14 +166,14 @@ fig3_U
 
 # Stats
 # basic linear regression
-statsfig3U <- lm(mean_TPM ~ mean_speed, 
+statsfig3U <- lm(log(mean_TPM) ~ mean_speed,    # CHECK OUT HOW ESTIMATE AND INTERCEPT CHANGES WHEN YOU LOG (OR NOT) THE RESPONSE (Y) VARIABLE
               data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
 summary(statsfig3U)
 r.squaredGLMM(GLMMfig3U_mean)
 
 # Generalized linear mixed model
 GLMMfig3U_mean <- lmer(log(mean_TPM) ~ mean_speed + (1|Species), 
-                      data = d_combine_swimming_summarized)
+                       data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
 summary(GLMMfig3U_mean)
 r.squaredGLMM(GLMMfig3U_mean)
 
@@ -199,12 +199,14 @@ fig3_A
 # Stats
 # basic linear regression
 statsfig3A <- lm(mean_TPM ~ `Fluke Area (m)`, 
-                 data = d_combine_swimming_summarized)
+                 data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+
 summary(statsfig3A)
 
 # Generalized linear mixed model
 GLMMfig3A_mean <- lmer(log(mean_TPM) ~ `Fluke Area (m)` + (1|Species), 
-                       data = d_combine_swimming_summarized)
+                       data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+
 summary(GLMMfig3A_mean)
 r.squaredGLMM(GLMMfig3A_mean)
 
@@ -223,12 +225,14 @@ fig3_L
 # Stats
 # basic linear regression
 statsfig3L <- lm(mean_TPM ~ `Total Length (m)`, 
-                 data = d_combine_swimming_summarized)
+                 data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+
 summary(statsfig3L)
 
 # Generalized linear mixed model
 GLMMfig3L_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
-                       data = d_combine_swimming_summarized)
+                       data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+
 summary(GLMMfig3L_mean)
 r.squaredGLMM(GLMMfig3L_mean)
 
@@ -248,12 +252,14 @@ fig3_AL
 # Stats
 # basic linear regression
 statsfig3AL <- lm(mean_TPM ~ `FA/L`, 
-                 data = d_combine_swimming_summarized)
+                  data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+
 summary(statsfig3AL)
 
 # Generalized linear mixed model
 GLMMfig3AL_mean <- lmer(log(mean_TPM) ~ `FA/L` + (1|Species), 
-                       data = d_combine_swimming_summarized)
+                        data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+
 summary(GLMMfig3AL_mean)
 r.squaredGLMM(GLMMfig3AL_mean)
 
@@ -296,13 +302,17 @@ fig4
 # Stats
 # basic linear regression
 stats4max <- lm(mean_TPM ~ `Total Length (m)`, 
-              data = filter(d_combine_swimming_summarized, effort_type == "Max"))
+              data = filter(d_combine_swimming_summarized, 
+                            effort_type == "Max", Species != "Balaenoptera physalus"))
+
 summary(stats4max)
 
 
 # Generalized linear mixed model
 GLMM4max_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
-                      data = filter(d_combine_swimming_summarized, effort_type == "Max"))
+                      data = filter(d_combine_swimming_summarized, 
+                                    effort_type == "Max", Species != "Balaenoptera physalus"))
+
 summary(GLMM4max_mean)
 r.squaredGLMM(GLMM4max_mean)
 
@@ -310,13 +320,15 @@ r.squaredGLMM(GLMM4max_mean)
 # Stats
 # basic linear regression
 stats4normal <- lm(mean_TPM ~ `Total Length (m)`, 
-                data = filter(d_combine_swimming_summarized, effort_type == "Normal"))
+                   data = filter(d_combine_swimming_summarized, 
+                                 effort_type == "Max", Species != "Balaenoptera physalus"))
 summary(stats4normal)
 
 
 # Generalized linear mixed model
 GLMM4normal_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
-                      data = filter(d_combine_swimming_summarized, effort_type == "Normal"))
+                         data = filter(d_combine_swimming_summarized, 
+                                       effort_type == "Normal", Species != "Balaenoptera physalus"))
 summary(GLMM4normal_mean)
 r.squaredGLMM(GLMM4normal_mean)
 
@@ -339,12 +351,14 @@ fig5_U
 # Stats
 # basic linear regression
 statsfig5U <- lm(mean_E ~ mean_speed, 
-                  data = normal_effort)
+                 data = filter(normal_effort, Species != "Balaenoptera physalus"))
+
 summary(statsfig5U)
 
 # Generalized linear mixed model
 GLMM4fig5U_mean <- lmer(mean_E ~ mean_speed + (1|Species), 
-                         data = normal_effort)
+                        data = filter(normal_effort, Species != "Balaenoptera physalus"))
+
 summary(GLMM4fig5U_mean)
 r.squaredGLMM(GLMM4fig5U_mean)
 
@@ -364,13 +378,13 @@ fig5_L
 # Stats
 # basic linear regression
 statsfig5L <- lm(mean_E ~ `Total Length (m)`, 
-                 data = normal_effort)
+                 data = filter(normal_effort, Species != "Balaenoptera physalus"))
 summary(statsfig5L)
 
 
 # Generalized linear mixed model
 GLMM4fig5L_mean <- lmer(mean_E ~ `Total Length (m)` + (1|Species), 
-                        data = normal_effort)
+                        data = filter(normal_effort, Species != "Balaenoptera physalus"))
 summary(GLMM4fig5L_mean)
 r.squaredGLMM(GLMM4fig5L_mean)
 
@@ -418,12 +432,12 @@ fig7
 # Stats
 # basic linear regression
 stats7Emp <- lm(mean_drag ~ `Total Length (m)`, 
-              data = normal_effort)
+                data = filter(normal_effort, Species != "Balaenoptera physalus"))
 summary(stats7Emp)
 
 # Generalized linear mixed model
 GLMM4fig7Emp_mean <- lmer(log(mean_drag) ~ `Total Length (m)` + (1|Species), 
-                        data = normal_effort)
+                          data = filter(normal_effort, Species != "Balaenoptera physalus"))
 summary(GLMM4fig7Emp_mean)
 r.squaredGLMM(GLMM4fig7Emp_mean)
 
