@@ -1,17 +1,19 @@
+#### Install necessary packages ####
+install.packages("lme4")
+install.packages("lmerTest")
+install.packages("MuMin")
+
 #### Load packages and data ####
 library(cowplot)
 library(ggplot2)
 library(ggpubr)
 library(tidyverse)
-
-install.packages("lme4")
-install.packages("lmerTest")
-install.packages("MuMin")
 library(lme4)
 library(lmerTest)
 library(MuMIn)
 
 # Custom functions ----
+
 # Standard error function
 SE = function(x){sd(x)/sqrt(sum(!is.na(x)))}
 
@@ -23,6 +25,7 @@ abbr_binom <- function(binom) {
 }
 
 #### Shirel's Allometric Eqs ####
+
 # creating fucntions from Shirel's paper for MW (in kg) for engulfment capacity in liters for each species where we have a known length
 Mass_SKR <- tribble(
   ~Species, ~slope,   ~intercept,
@@ -139,11 +142,16 @@ d_combine_swimming_summarized <- d_combine_swimming %>%
   mutate(effort_type = replace(effort_type, effort_type == "All", "Normal"))
 
 
+
+
 #### Graphs Start Here ####
+
+
 
 
 #### Color Palette ####
 pal <- c("B. bonaerensis" = "#009E73",  "M. novaeangliae" = "#D55E00",  "B. musculus" = "#0072B2")
+pal2 <- c("Human" = "#59A14F", "Fish" = "E15759", "Pinniped" = "#79706E", "Sirenian" = "#B6992D", "Odontocete" = "#B07AA1", "Mysticete" = "#4E79A7")
 
 #### MST ~ U, A, L, A/L ####
 # (kinematics and morphology) 
@@ -165,24 +173,17 @@ fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
 fig3_U
 
 # Stats
+
 # basic linear regression
 statsfig3U <- lm(log(mean_TPM) ~ mean_speed,    # CHECK OUT HOW ESTIMATE AND INTERCEPT CHANGES WHEN YOU LOG (OR NOT) THE RESPONSE (Y) VARIABLE
-              data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+                 data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
 summary(statsfig3U)
-r.squaredGLMM(GLMMfig3U_mean)
 
 # Generalized linear mixed model
 GLMMfig3U_mean <- lmer(log(mean_TPM) ~ mean_speed + (1|Species), 
                        data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
 summary(GLMMfig3U_mean)
 r.squaredGLMM(GLMMfig3U_mean)
-
-
-# this model takes forever to run so I ditched it for now
-GLMMfig3U_raw <- lmer(log(TPM) ~ Speed + (1|ID) + (1|`Common name`),
-                  data = d_reg_swimming)
-summary(GLMMfig3U_raw)
-r.squaredGLMM(GLMMfig3U_raw)
 
 
 fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
@@ -200,13 +201,11 @@ fig3_A
 # basic linear regression
 statsfig3A <- lm(mean_TPM ~ `Fluke Area (m)`, 
                  data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-
 summary(statsfig3A)
 
 # Generalized linear mixed model
 GLMMfig3A_mean <- lmer(log(mean_TPM) ~ `Fluke Area (m)` + (1|Species), 
                        data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-
 summary(GLMMfig3A_mean)
 r.squaredGLMM(GLMMfig3A_mean)
 
@@ -226,13 +225,11 @@ fig3_L
 # basic linear regression
 statsfig3L <- lm(mean_TPM ~ `Total Length (m)`, 
                  data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-
 summary(statsfig3L)
 
 # Generalized linear mixed model
 GLMMfig3L_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
                        data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-
 summary(GLMMfig3L_mean)
 r.squaredGLMM(GLMMfig3L_mean)
 
@@ -253,16 +250,13 @@ fig3_AL
 # basic linear regression
 statsfig3AL <- lm(mean_TPM ~ `FA/L`, 
                   data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-
 summary(statsfig3AL)
 
 # Generalized linear mixed model
 GLMMfig3AL_mean <- lmer(log(mean_TPM) ~ `FA/L` + (1|Species), 
                         data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-
 summary(GLMMfig3AL_mean)
 r.squaredGLMM(GLMMfig3AL_mean)
-
 
 # Combine into one figure
 fig3 <- plot_grid(fig3_U, fig3_A, fig3_L, fig3_AL,
@@ -279,7 +273,6 @@ ggsave("figs/fig3.pdf", height = 90, width = 90, units = "mm", dpi = 300)
 combined_effort <- d_combine_swimming_summarized %>% 
   filter(Species != "Balaenoptera physalus") %>% 
   mutate(sp_abbr = abbr_binom(Species))
-# Remove outliers from figure
 fig4 <- combined_effort %>% 
   filter(mean_TPM < 1.6) %>% 
   ggplot(aes(`Total Length (m)`, mean_TPM, color = sp_abbr)) +
@@ -302,20 +295,16 @@ fig4
 # Stats
 # basic linear regression
 stats4max <- lm(mean_TPM ~ `Total Length (m)`, 
-              data = filter(d_combine_swimming_summarized, 
-                            effort_type == "Max", Species != "Balaenoptera physalus"))
-
+                data = filter(d_combine_swimming_summarized, 
+                              effort_type == "Max", Species != "Balaenoptera physalus"))
 summary(stats4max)
-
 
 # Generalized linear mixed model
 GLMM4max_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
                       data = filter(d_combine_swimming_summarized, 
                                     effort_type == "Max", Species != "Balaenoptera physalus"))
-
 summary(GLMM4max_mean)
 r.squaredGLMM(GLMM4max_mean)
-
 
 # Stats
 # basic linear regression
@@ -323,7 +312,6 @@ stats4normal <- lm(mean_TPM ~ `Total Length (m)`,
                    data = filter(d_combine_swimming_summarized, 
                                  effort_type == "Max", Species != "Balaenoptera physalus"))
 summary(stats4normal)
-
 
 # Generalized linear mixed model
 GLMM4normal_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
@@ -352,13 +340,11 @@ fig5_U
 # basic linear regression
 statsfig5U <- lm(mean_E ~ mean_speed, 
                  data = filter(normal_effort, Species != "Balaenoptera physalus"))
-
 summary(statsfig5U)
 
 # Generalized linear mixed model
 GLMM4fig5U_mean <- lmer(mean_E ~ mean_speed + (1|Species), 
                         data = filter(normal_effort, Species != "Balaenoptera physalus"))
-
 summary(GLMM4fig5U_mean)
 r.squaredGLMM(GLMM4fig5U_mean)
 
@@ -395,28 +381,12 @@ fig5 <- plot_grid(fig5_U, fig5_L,
                   labels = NULL)
 ggsave("figs/fig5.pdf", height = 90, width = 180, units = "mm", dpi = 300)
 fig5
+
 ## TODO LME, play with sizes/dimensions
 
-#### Prop Eff ~ U (Smoothed Lines + Fish 1998 Data) ####
-fish_prop_eff <- read_csv("fish_prop_eff.csv")
-flukebeats_no_fins <- d_reg_swimming %>% 
-  filter(Species != "Balaenoptera physalus")
-fig6 <- ggplot(flukebeats_no_fins, aes(Speed, Efficiency)) +
-  geom_smooth(aes(color = Species), se = FALSE) +
-  geom_smooth(aes(color = Species), fish_prop_eff, se = FALSE, linetype = 2) +
-  labs(x = bquote('Speed'~(m~s^-1)),
-       y = "Propulsive Efficiency") +
-  theme_minimal()
-  #theme(legend.position = "none",
-   #     panel.grid.minor = element_blank())
-fig6
-ggsave("figs/fig6.pdf", height = 90, width = 180, units = "mm", dpi = 300)
-
-## TODO Talk to Max and figure out how this could be made better. Figure out what's going on with the blues at high speeds.
-
 #### Drag ~ L w/ CFD ####
-potvin_cfd <- read_csv("Hayden_REU_Project-master/potvin_cfd.csv")
-fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
+potvin_cfd <- read_csv("potvin_cfd.csv")
+fig6 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
   geom_point(aes(color = sp_abbr)) +
   geom_smooth(method = "lm", color = "black") +
   geom_point(aes(color = sp_abbr), potvin_cfd, size = 2, shape = 15) +
@@ -426,37 +396,72 @@ fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
-ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
-fig7
+ggsave("figs/fig6.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+fig6
 
 # Stats
 # basic linear regression
-stats7Emp <- lm(mean_drag ~ `Total Length (m)`, 
+stats6Emp <- lm(mean_drag ~ `Total Length (m)`, 
                 data = filter(normal_effort, Species != "Balaenoptera physalus"))
-summary(stats7Emp)
+summary(stats6Emp)
 
 # Generalized linear mixed model
-GLMM4fig7Emp_mean <- lmer(log(mean_drag) ~ `Total Length (m)` + (1|Species), 
+GLMM4fig6Emp_mean <- lmer(log(mean_drag) ~ `Total Length (m)` + (1|Species), 
                           data = filter(normal_effort, Species != "Balaenoptera physalus"))
-summary(GLMM4fig7Emp_mean)
-r.squaredGLMM(GLMM4fig7Emp_mean)
-
+summary(GLMM4fig6Emp_mean)
+r.squaredGLMM(GLMM4fig6Emp_mean)
 
 # Stats
 # basic linear regression
-stats7Jean <- lm(mean_drag ~ `Total Length (m)`, 
-             data = potvin_cfd)
-summary(stats7Jean)
+stats6Jean <- lm(mean_drag ~ `Total Length (m)`, 
+                 data = potvin_cfd)
+summary(stats6Jean)
 
 # Generalized linear mixed model
-GLMM4fig7Jean_mean <- lmer(log(mean_drag) ~ `Total Length (m)` + (1|sp_abbr), 
+GLMM4fig6Jean_mean <- lmer(log(mean_drag) ~ `Total Length (m)` + (1|sp_abbr), 
                            data = potvin_cfd)
-summary(GLMM4fig7Jean_mean)
-r.squaredGLMM(GLMM4fig7Jean_mean)
+summary(GLMM4fig6Jean_mean)
+r.squaredGLMM(GLMM4fig6Jean_mean)
 
 ## TODO y'know
 
-#### Prop Eff ~ RE (Smoothed Lines + Fish 1998 Data) ####
+#### Prop Eff ~ L w/ Other Species ####
+fish_prop_eff <- read_csv("Propulsive Eff All Species.csv")
+fig7 <- ggplot(fish_prop_eff, aes(`Total Length (m)`, `Prop Eff (Max)`)) +
+  geom_point(aes(color = Group)) +
+  expand_limits(y = c(0, 1)) +
+  labs(y = "Propulsive Efficiency") +
+  scale_color_manual(values = pal2) +
+  theme_minimal() +
+  theme(legend.position = "right",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+fig7
+
+
+
+
+#### Extra/Test Figures (Not Used In Paper) ####
+
+
+
+
+#### Extra - Prop Eff ~ U (Smoothed Lines + Fish 1998 Data) ####
+fish_prop_eff <- read_csv("fish_prop_eff.csv")
+flukebeats_no_fins <- d_reg_swimming %>% 
+  filter(Species != "Balaenoptera physalus")
+fig6 <- ggplot(flukebeats_no_fins, aes(Speed, Efficiency)) +
+  geom_smooth(aes(color = Species), se = FALSE) +
+  geom_smooth(aes(color = Species), fish_prop_eff, se = FALSE, linetype = 2) +
+  labs(x = bquote('Speed'~(m~s^-1)),
+       y = "Propulsive Efficiency") +
+  theme_minimal()
+#theme(legend.position = "none",
+#     panel.grid.minor = element_blank())
+fig6
+ggsave("figs/fig6.pdf", height = 90, width = 180, units = "mm", dpi = 300)
+
+#### Extra - Prop Eff ~ RE (Smoothed Lines + Fish 1998 Data) ####
 fish_prop_eff <- read_csv("fish_prop_eff.csv")
 flukebeats_no_fins <- d_reg_swimming %>% 
   filter(Species != "Balaenoptera physalus")
@@ -470,7 +475,8 @@ figtest1 <- ggplot(flukebeats_no_fins, aes(`Reynolds Number`, Efficiency)) +
 #     panel.grid.minor = element_blank())
 ggsave("figs/figtest1.pdf", height = 90, width = 180, units = "mm", dpi = 300)
 figtest1
-#### Max Prop Eff ~ Max RE ####
+
+#### Extra - Max Prop Eff ~ Max RE ####
 fish_prop_eff_sum <- fish_prop_eff %>%
   group_by(Species) %>%
   summarize(`Max Eff` = max(Efficiency)) 
