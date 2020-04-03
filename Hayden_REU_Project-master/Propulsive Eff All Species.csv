@@ -1,12 +1,14 @@
-Species,Speed,Prop Efficiency,Body Length (Individual or Avg) in m,Source,Group
+Species,Speed,Prop Eff (Max),Total Length (m),Source,Group
 Homo sapien,0.95 m/s,0.29,2.38,von Loebbecke et al. 2009,Human
 Cymatogaster,0.57 m/s,0.7,0.143,Webb 1975,Fish
 Rainbow Trout,Ucrit,0.75,0.293,Webb 1975,Fish
 Tuna (Kawakawa),1.52 m/s,0.9,0.4,Magnuson 1978,Fish
+Ringed Seal,0.75 m/s,0.88,1.03,Fish et al. 1988,Pinniped
+Harp Seal,1.04 m/s,0.87,1.43,Fish et al. 1988,Pinniped
 Trichechus (manatee),0.3 l/s,0.83,3.23,Kojeszewski and Fish 2007,Sirenian
-Delphinapterus leucas,N/A,0.9,N/A,Liu and Bose 1993,Odontocete
+Delphinapterus leucas,N/A,0.9,,Liu and Bose 1993,Odontocete
 Delphinapterus leucas,3 m/s,0.84,3.64,Fish 1998a,Odontocete
-Lagenorhynchus acutus,N/A,0.96,N/A,Liu and Bose 1993,Odontocete
+Lagenorhynchus acutus,N/A,0.96,,Liu and Bose 1993,Odontocete
 Lagenorhynchus obliquidens,5.2 m/s,0.99,1.98,Wu 1971b,Odontocete
 Lagenorhynchus obliquidens,5.5 m/s,0.77,2.04,Webb 1975,Odontocete
 Lagenorhynchus obliquidens,5.2 m/s,0.92,2,Yates 1983,Odontocete
@@ -16,7 +18,8 @@ Pseudorca crassidens,3.8 m/s,0.9,3.75,Fish 1998a,Odontocete
 Sotalia guianensis,2.4 m/s,0.83,1.9,Blickhan and Cheng 1994,Odontocete
 Tursiops truncatus,2.4 m/s,0.78,2.5,Blickhan and Cheng 1994,Odontocete
 Tursiops truncatus,3.8 m/s,0.86,2.61,Fish 1998a,Odontocete
-Phocoena phocoena,3.2 m/s,0.56,4.1,von Loebbecke et al. 2009,Odontocete
-,,,,,
 Balaenoptera physalus,8 m/s,0.87,14.5,Bose and Lien 1989,Mysticete
-Balaenoptera physalus,N/A,0.96,N/A,Liu and Bose 1993,Mysticete
+Balaenoptera physalus,N/A,0.96,,Liu and Bose 1993,Mysticete
+Minke,Calculate,0.92,7.3,Our Data,Mysticete
+Humpback,Calculate,0.901,11.09,Our Data,Mysticete
+Blue,Calculate,0.851,22.5,Our Data,Mysticete
