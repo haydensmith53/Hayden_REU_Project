@@ -387,7 +387,7 @@ fig5
 ## TODO LME, play with sizes/dimensions
 
 #### Drag ~ L w/ CFD ####
-potvin_cfd <- read_csv("Hayden_REU_Project-master/potvin_cfd.csv")
+potvin_cfd <- read_csv("potvin_cfd.csv")
 fig6 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
   geom_point(aes(color = sp_abbr)) +
   geom_smooth(method = "lm", color = "black") +
@@ -432,10 +432,10 @@ fish_prop_eff <- read_csv("Propulsive Eff All Species.csv")
 fig7 <- ggplot(fish_prop_eff, aes(`Total Length (m)`, `Prop Eff (Max)`)) +
   geom_point(aes(color = Group)) +
   expand_limits(y = c(0, 1)) +
-  labs(y = "Propulsive Efficiency (%)") +
+  labs(y = "Propulsive Efficiency") +
   scale_color_manual(values = pal2) +
   theme_minimal() +
-  theme(legend.position = "none",
+  theme(legend.position = "right",
         panel.grid.minor = element_blank())
 ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
 fig7
