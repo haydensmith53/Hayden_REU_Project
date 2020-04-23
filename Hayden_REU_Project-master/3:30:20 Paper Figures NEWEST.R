@@ -13,6 +13,7 @@ library(lme4)
 library(lmerTest)
 library(MuMIn)
 
+
 # Custom functions ----
 # Standard error function
 SE = function(x){sd(x)/sqrt(sum(!is.na(x)))}
