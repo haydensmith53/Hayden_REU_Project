@@ -1,4 +1,4 @@
-#Physics Capstone 
+#Physics Capstone new changes
 #### Load packages and data ####
 library(cowplot)
 library(ggplot2)
@@ -209,6 +209,9 @@ fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
         axis.ticks.y = element_line(size = y_ticksz),
         axis.text = element_text(color = "black")) 
 fig3_U
+
+
+
 # Stats
 # basic linear regression
 statsfig3U <- lm(mean_TPM ~ mean_speed, 
