@@ -58,7 +58,7 @@ d_max_swimming <- read_csv("10_2 AllWhaleMaxEffortBeats.csv") %>%
          TPM = `Thrust Power`/Mass,
          Speed_BL = Speed/Length)
 
-# Separating normal fluekbeats from all data
+# Separating normal fluekbeats from all data ----
 d_reg_swimming <- d_all_swimming %>%  
   anti_join(d_max_swimming, by = colnames(d_all_swimming)[c(1:4, 7:8, 15)]) %>% 
   mutate(effort_type = "All") %>%
@@ -71,7 +71,7 @@ d_reg_swimming <- d_all_swimming %>%
 # Combining normal and max data, this is the data file that we will use 
 d_combine_swimming <- bind_rows(d_reg_swimming, d_max_swimming)
 
-# Summarizing d_max_swimming
+# Summarizing d_max_swimming ----
 species_size <- d_reg_swimming %>% 
   group_by(Species) %>% 
   summarize(Size = mean(Length)) %>% 
@@ -146,11 +146,17 @@ fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
   geom_smooth(method = "lm", color = "black") +
   scale_color_manual(values = pal) +
   expand_limits(y = 0) +
-  labs(x = "Speed (m s-1)",
-       y = "Mass-Specific Thrust (N kg-1)") +
+  labs(x = bquote('Speed'~(m~s^-1)),
+       y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
+fig3_U
+statsfig3U <- lm(mean_TPM ~ mean_speed, 
+              data = d_combine_swimming_summarized)
+summary(statsfig3U)
+
+
 fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
   geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
@@ -160,15 +166,27 @@ fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
   theme(axis.title.y = element_blank(),
         legend.position = "none",
         panel.grid.minor = element_blank())
+fig3_A
+statsfig3A <- lm(mean_TPM ~ `Fluke Area (m)`, 
+                 data = d_combine_swimming_summarized)
+summary(statsfig3A)
+
+
 fig3_L <- ggplot(normal_effort, aes(`Total Length (m)`, mean_TPM)) +
   geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
   scale_color_manual(values = pal) +
   expand_limits(y = 0) +
-  labs(y = "Mass-Specific Thrust (N kg-1)") +
+  labs(y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
+fig3_L
+statsfig3L <- lm(mean_TPM ~ `Total Length (m)`, 
+                 data = d_combine_swimming_summarized)
+summary(statsfig3L)
+
+
 fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
   geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
@@ -179,12 +197,19 @@ fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
   theme(axis.title.y = element_blank(),
         legend.position = "none",
         panel.grid.minor = element_blank())
+fig3_AL
+statsfig3AL <- lm(mean_TPM ~ `FA/L`, 
+                 data = d_combine_swimming_summarized)
+summary(statsfig3AL)
+
+
 # Combine into one figure
 fig3 <- plot_grid(fig3_U, fig3_A, fig3_L, fig3_AL,
                   nrow = 2,
                   align = "h",
                   rel_widths = c(1.1, 0.9),
                   labels = NULL)
+fig3
 ggsave("figs/fig3.pdf", height = 90, width = 90, units = "mm", dpi = 300)
 
 ## TODO change text and point sizes, fit linear mixed effects model, get prediction intervals from lme
@@ -205,11 +230,20 @@ fig4 <- combined_effort %>%
                                 Normal = "black", Max = "black")) +
   scale_shape_manual(values = c(Normal = 16, Max = 1)) +
   scale_linetype_manual(values = c(Normal = "solid", Max = "longdash")) +
-  labs(y = "Mass-Specific Thrust (N kg-1)") +
+  labs(x = bquote('Total Length (m)'),
+       y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
 ggsave("figs/fig4.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+fig4
+
+stats4max <- lm(mean_TPM ~ `Total Length (m)`, 
+              data = filter(d_combine_swimming_summarized, effort_type == "Max"))
+summary(stats4max)
+stats4normal <- lm(mean_TPM ~ `Total Length (m)`, 
+                data = filter(d_combine_swimming_summarized, effort_type == "Normal"))
+summary(stats4normal)
 
 ## TODO fit LME, get prediction intervals, change text and point sizes
 
@@ -219,12 +253,18 @@ fig5_U <- normal_effort %>%
   geom_point(aes(color = sp_abbr)) +
   geom_smooth(method = "lm", color = "black") +
   scale_color_manual(values = pal) +
-  labs(x = "Speed (m s-1)",
+  labs(x = bquote('Speed'~(m~s^-1)),
        y = "Propulsive Efficiency") +
   expand_limits(y = c(0.75, 1)) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
+fig5_U
+statsfig5U <- lm(mean_E ~ mean_speed, 
+                  data = normal_effort)
+summary(statsfig5U)
+
+
 fig5_L <- normal_effort %>% 
   ggplot(aes(`Total Length (m)`, mean_E)) +
   geom_point(aes(color = sp_abbr)) +
@@ -235,12 +275,18 @@ fig5_L <- normal_effort %>%
   theme(axis.title.y = element_blank(),
         legend.position = "none",
         panel.grid.minor = element_blank())
+fig5_L
+statsfig5L <- lm(mean_E ~ `Total Length (m)`, 
+                 data = normal_effort)
+summary(statsfig5L)
+
+
 fig5 <- plot_grid(fig5_U, fig5_L,
                   nrow = 1,
                   align = "h",
                   labels = NULL)
 ggsave("figs/fig5.pdf", height = 90, width = 180, units = "mm", dpi = 300)
-
+fig5
 ## TODO LME, play with sizes/dimensions
 
 #### Prop Eff ~ U (Smoothed Lines + Fish 1998 Data) ####
@@ -250,7 +296,7 @@ flukebeats_no_fins <- d_reg_swimming %>%
 fig6 <- ggplot(flukebeats_no_fins, aes(Speed, Efficiency)) +
   geom_smooth(aes(color = Species), se = FALSE) +
   geom_smooth(aes(color = Species), fish_prop_eff, se = FALSE, linetype = 2) +
-  labs(x = "Speed (m s-1)",
+  labs(x = bquote('Speed'~(m~s^-1)),
        y = "Propulsive Efficiency") +
   theme_minimal()
   #theme(legend.position = "none",
@@ -261,7 +307,7 @@ ggsave("figs/fig6.pdf", height = 90, width = 180, units = "mm", dpi = 300)
 ## TODO Talk to Max and figure out how this could be made better. Figure out what's going on with the blues at high speeds.
 
 #### Drag ~ L w/ CFD ####
-potvin_cfd <- read_csv("potvin_cfd.csv")
+potvin_cfd <- read_csv("Hayden_REU_Project-master/potvin_cfd.csv")
 fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
   geom_point(aes(color = sp_abbr)) +
   geom_smooth(method = "lm", color = "black") +
@@ -273,6 +319,14 @@ fig7 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
   theme(legend.position = "none",
         panel.grid.minor = element_blank())
 ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
+fig7
+
+stats7Emp <- lm(mean_drag ~ `Total Length (m)`, 
+              data = normal_effort)
+summary(stats7Emp)
+stats7Jean <- lm(mean_drag ~ `Total Length (m)`, 
+             data = potvin_cfd)
+summary(stats7Jean)
 
 ## TODO y'know
 
@@ -289,7 +343,7 @@ figtest1 <- ggplot(flukebeats_no_fins, aes(`Reynolds Number`, Efficiency)) +
 #theme(legend.position = "none",
 #     panel.grid.minor = element_blank())
 ggsave("figs/figtest1.pdf", height = 90, width = 180, units = "mm", dpi = 300)
-
+figtest1
 #### Max Prop Eff ~ Max RE ####
 fish_prop_eff_sum <- fish_prop_eff %>%
   group_by(Species) %>%

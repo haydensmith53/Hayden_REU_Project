@@ -146,6 +146,7 @@ TPMvSpecies <- ggplot(d_reg_swimming_summarized,
   theme_classic(base_size = 14)
   #theme(legend.position = "none") 
 print(TPMvSpecies + ggtitle("                              Mass-Specific Thrust Across Species"))
+TPMvSpecies
 
 # TPM vs. Speed
 TPMvSpeed <- ggplot(d_combine_swimming_summarized, 
@@ -272,8 +273,6 @@ ggplot(d_reg_swimming_summarized, aes(Length, mean_E, color = Species)) +
 #############
 # Max Effort Swimming Kinematics
 #############
-
-
 
 #Thrust
 maxPt <- ggplot(d_max_swimming_summarized, 
