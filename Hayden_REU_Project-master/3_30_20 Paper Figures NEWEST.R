@@ -153,39 +153,245 @@ d_combine_swimming_summarized <- d_combine_swimming %>%
 pal <- c("B. bonaerensis" = "#009E73",  "M. novaeangliae" = "#D55E00",  "B. musculus" = "#0072B2")
 pal2 <- c("Human" = "#59A14F", "Fish" = "E15759", "Pinniped" = "#79706E", "Sirenian" = "#B6992D", "Odontocete" = "#B07AA1", "Mysticete" = "#4E79A7")
 
-#### MST ~ U, A, L, A/L ####
+#### MST ~ U ####
 # (kinematics and morphology) 
 # (Just normal, no max effort)
 normal_effort <- d_combine_swimming_summarized %>% 
   filter(effort_type == "Normal",
          Species != "Balaenoptera physalus") %>% 
   mutate(sp_abbr = abbr_binom(Species))
-fig3_U <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
-  geom_point(aes(color = sp_abbr), size = 0.5) +
-  geom_smooth(method = "lm", color = "black") +
+fig3 <- ggplot(normal_effort, aes(mean_speed, mean_TPM)) +
+  geom_point(aes(color = sp_abbr), size = 10) +
+  geom_smooth(method = "lm", color = "black", size = 3) +
   scale_color_manual(values = pal) +
   expand_limits(y = 0) +
-  labs(x = bquote('Speed'~(m~s^-1)),
+  labs(x = bquote('Swim Speed'~(m~s^-1)),
        y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
-  theme_minimal(base_size = 8) +
-  theme(legend.position = "none",
+  theme_classic(base_size = 8) +
+  theme(axis.text = element_text(size = 40),
+        axis.title = element_text(size = 48),
+        legend.position = "none",
         panel.grid.minor = element_blank())
-fig3_U
+ggsave("figs/fig3.pdf", height = 480, width = 480, units = "mm", dpi = 300)
+fig3
 
 # Stats
 
 # basic linear regression
-statsfig3U <- lm(log(mean_TPM) ~ mean_speed,    # CHECK OUT HOW ESTIMATE AND INTERCEPT CHANGES WHEN YOU LOG (OR NOT) THE RESPONSE (Y) VARIABLE
+statsfig3 <- lm(log(mean_TPM) ~ mean_speed,    # CHECK OUT HOW ESTIMATE AND INTERCEPT CHANGES WHEN YOU LOG (OR NOT) THE RESPONSE (Y) VARIABLE
                  data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-summary(statsfig3U)
+summary(statsfig3)
 
 # Generalized linear mixed model
-GLMMfig3U_mean <- lmer(log(mean_TPM) ~ mean_speed + (1|Species), 
+GLMMfig3_mean <- lmer(log(mean_TPM) ~ mean_speed + (1|Species), 
                        data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-summary(GLMMfig3U_mean)
-r.squaredGLMM(GLMMfig3U_mean)
+summary(GLMMfig3_mean)
+r.squaredGLMM(GLMMfig3_mean)
 
 
+#### MST ~ L ####
+# (kinematics and morphology) 
+# (Normal and Max)
+combined_effort <- d_combine_swimming_summarized %>% 
+  filter(Species != "Balaenoptera physalus") %>% 
+  mutate(sp_abbr = abbr_binom(Species))
+
+fig4 <- combined_effort %>% 
+  filter(mean_TPM < 1.6) %>% 
+  ggplot(aes(`Total Length (m)`, mean_TPM, color = sp_abbr)) +
+  geom_point(aes(shape = effort_type), size = 10) +
+  geom_smooth(method = "lm", aes(color = effort_type, linetype = effort_type), size = 3) +
+  scale_color_manual(values = c(`B. bonaerensis` = "#009E73",
+                                `M. novaeangliae` = "#D55E00",
+                                `B. musculus` = "#0072B2",
+                                Normal = "black", Max = "black")) +
+  scale_shape_manual(values = c(Normal = 16, Max = 10)) +
+  scale_linetype_manual(values = c(Normal = "solid", Max = "longdash")) +
+  labs(x = bquote('Total Length (m)'),
+       y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
+  theme_classic(base_size = 8) +
+  theme(axis.text = element_text(size = 40),
+        axis.title = element_text(size = 48),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig4.pdf", height = 480, width = 480, units = "mm", dpi = 300)
+fig4
+
+# Stats
+# basic linear regression
+stats4max <- lm(mean_TPM ~ `Total Length (m)`, 
+                data = filter(d_combine_swimming_summarized, 
+                              effort_type == "Max", Species != "Balaenoptera physalus"))
+summary(stats4max)
+
+# Generalized linear mixed model
+GLMM4Lmax_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
+                      data = filter(d_combine_swimming_summarized, 
+                                    effort_type == "Max", Species != "Balaenoptera physalus"))
+summary(GLMM4max_mean)
+r.squaredGLMM(GLMM4max_mean)
+
+# Stats
+# basic linear regression
+stats4normal <- lm(mean_TPM ~ `Total Length (m)`, 
+                   data = filter(d_combine_swimming_summarized, 
+                                 effort_type == "Max", Species != "Balaenoptera physalus"))
+summary(stats4normal)
+
+# Generalized linear mixed model
+GLMM4normal_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
+                         data = filter(d_combine_swimming_summarized, 
+                                       effort_type == "Normal", Species != "Balaenoptera physalus"))
+summary(GLMM4normal_mean)
+r.squaredGLMM(GLMM4normal_mean)
+
+## TODO fit LME, get prediction intervals, change text and point sizes
+
+#### MST ~ AL ####
+# (kinematics and morphology) 
+# (Normal and Max)
+fig5 <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
+  geom_point(aes(color = sp_abbr), size = 10) +
+  geom_smooth(method = "lm", color = "black", size = 3) +
+  scale_color_manual(values = pal) +
+  labs(x = "Fluke Area / Total Length",
+       y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
+  theme_classic(base_size = 8) +
+  theme(axis.text = element_text(size = 40),
+        axis.title = element_text(size = 48),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig5.pdf", height = 480, width = 480, units = "mm", dpi = 300)
+fig5
+
+# Stats
+# basic linear regression
+statsfig5 <- lm(mean_TPM ~ `FA/L`, 
+                  data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+summary(statsfig5)
+
+# Generalized linear mixed model
+GLMMfig5_mean <- lmer(log(mean_TPM) ~ `FA/L` + (1|Species), 
+                        data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
+summary(GLMMfig5_mean)
+r.squaredGLMM(GLMMfig5_mean)
+
+
+## TODO change text and point sizes, fit linear mixed effects model, get prediction intervals from lme
+
+
+#### Hoerner Model Comparison ####
+fig6 <- normal_effort %>% 
+  ggplot() +
+  geom_point(aes(x = mean_Re, y = mean_drag, color = sp_abbr), size = 10) +
+  geom_smooth(method = "lm", aes(x = `Reynolds number`, y = `drag coefficient C_D`), color = "black", linetype = 2, size = 3) +
+  geom_smooth(method = "lm", aes(x = mean_Re, y = mean_drag), color = "black", size = 3) +
+  scale_color_manual(values = c(`B. bonaerensis` = "#009E73",
+                                `M. novaeangliae` = "#D55E00",
+                                `B. musculus` = "#0072B2",
+                                Normal = "black", Max = "black")) +
+  scale_shape_manual(values = c(Normal = 16, Max = 1)) +
+  scale_linetype_manual(values = c(Normal = "solid", Max = "longdash")) +
+  ylim(0, 0.05) +
+  labs(x = bquote('Reynolds Number'),
+       y = bquote('Drag Coefficient')) +
+  theme_classic(base_size = 8) +
+  theme(axis.text = element_text(size = 40),
+        axis.title = element_text(size = 48),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig6.pdf", height = 480, width = 480, units = "mm", dpi = 300)
+fig6
+
+
+#### Prop Eff ~ U, L ####
+fig7_U <- normal_effort %>% 
+  ggplot(aes(mean_speed, mean_E)) +
+  geom_point(aes(color = sp_abbr), size = 10) +
+  geom_smooth(method = "lm", color = "black", size = 3) +
+  scale_color_manual(values = pal) +
+  labs(x = bquote('Speed'~(m~s^-1)),
+       y = "Propulsive Efficiency") +
+  expand_limits(y = c(0.75, 1)) +
+  theme_classic() +
+  theme(axis.text = element_text(size = 40),
+        axis.title = element_text(size = 48),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+fig7_U
+
+# Stats
+# basic linear regression
+statsfig7U <- lm(mean_E ~ mean_speed, 
+                 data = filter(normal_effort, Species != "Balaenoptera physalus"))
+summary(statsfig7U)
+
+# Generalized linear mixed model
+GLMM4fig7U_mean <- lmer(mean_E ~ mean_speed + (1|Species), 
+                        data = filter(normal_effort, Species != "Balaenoptera physalus"))
+summary(GLMM4fig7U_mean)
+r.squaredGLMM(GLMM4fig7U_mean)
+
+
+fig7_L <- normal_effort %>% 
+  ggplot(aes(`Total Length (m)`, mean_E)) +
+  geom_point(aes(color = sp_abbr), size = 10) +
+  geom_smooth(method = "lm", color = "black", size = 3) +
+  scale_color_manual(values = pal) +
+  expand_limits(y = c(0.75, 1)) +
+  theme_classic() +
+  theme(axis.text = element_text(size = 40),
+        axis.title = element_text(size = 48),
+        axis.title.y = element_blank(),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+fig7_L
+
+# Stats
+# basic linear regression
+statsfig7L <- lm(mean_E ~ `Total Length (m)`, 
+                 data = filter(normal_effort, Species != "Balaenoptera physalus"))
+summary(statsfig7L)
+
+
+# Generalized linear mixed model
+GLMM4fig7L_mean <- lmer(mean_E ~ `Total Length (m)` + (1|Species), 
+                        data = filter(normal_effort, Species != "Balaenoptera physalus"))
+summary(GLMM4fig7L_mean)
+r.squaredGLMM(GLMM4fig7L_mean)
+
+
+fig7 <- plot_grid(fig7_U, fig7_L,
+                  nrow = 1,
+                  align = "h",
+                  labels = NULL)
+ggsave("figs/fig7.pdf", height = 480, width = 960, units = "mm", dpi = 300)
+fig7
+
+## TODO LME, play with sizes/dimensions
+
+
+
+#### Prop Eff ~ L w/ Other Species ####
+fish_prop_eff <- read_csv("Propulsive Eff All Species.csv")
+fig8 <- ggplot(fish_prop_eff, aes(`Total Length (m)`, `Prop Eff (Max)`)) +
+  geom_point(aes(color = Group, shape = `Type of Swimming`), size = 10) +
+  expand_limits(y = c(0, 1)) +
+  labs(x = "Total Length (m)",
+       y = "Propulsive Efficiency") +
+  theme_classic() +
+  theme(axis.text = element_text(size = 40),
+        axis.title = element_text(size = 48),
+        legend.position = "none",
+        panel.grid.minor = element_blank())
+ggsave("figs/fig8.pdf", height = 480, width = 480, units = "mm", dpi = 300)
+fig8
+
+
+
+#### Extra/Test Figures (Not Used In Paper) ####
+
+#### Extra - MST ~ A ####
 fig3_A <- ggplot(normal_effort, aes(`Fluke Area (m)`, mean_TPM)) +
   geom_point(aes(color = sp_abbr), size = 0.5) +
   geom_smooth(method = "lm", color = "black") +
@@ -209,182 +415,7 @@ GLMMfig3A_mean <- lmer(log(mean_TPM) ~ `Fluke Area (m)` + (1|Species),
 summary(GLMMfig3A_mean)
 r.squaredGLMM(GLMMfig3A_mean)
 
-
-fig3_L <- ggplot(normal_effort, aes(`Total Length (m)`, mean_TPM)) +
-  geom_point(aes(color = sp_abbr), size = 0.5) +
-  geom_smooth(method = "lm", color = "black") +
-  scale_color_manual(values = pal) +
-  expand_limits(y = 0) +
-  labs(y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
-  theme_minimal(base_size = 8) +
-  theme(legend.position = "none",
-        panel.grid.minor = element_blank())
-fig3_L
-
-# Stats
-# basic linear regression
-statsfig3L <- lm(mean_TPM ~ `Total Length (m)`, 
-                 data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-summary(statsfig3L)
-
-# Generalized linear mixed model
-GLMMfig3L_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
-                       data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-summary(GLMMfig3L_mean)
-r.squaredGLMM(GLMMfig3L_mean)
-
-
-fig3_AL <- ggplot(normal_effort, aes(`FA/L`, mean_TPM)) +
-  geom_point(aes(color = sp_abbr), size = 0.5) +
-  geom_smooth(method = "lm", color = "black") +
-  scale_color_manual(values = pal) +
-  expand_limits(y = 0) +
-  labs(x = "Fluke Area / Length (m)") +
-  theme_minimal(base_size = 8) +
-  theme(axis.title.y = element_blank(),
-        legend.position = "none",
-        panel.grid.minor = element_blank())
-fig3_AL
-
-# Stats
-# basic linear regression
-statsfig3AL <- lm(mean_TPM ~ `FA/L`, 
-                  data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-summary(statsfig3AL)
-
-# Generalized linear mixed model
-GLMMfig3AL_mean <- lmer(log(mean_TPM) ~ `FA/L` + (1|Species), 
-                        data = filter(d_combine_swimming_summarized, Species != "Balaenoptera physalus"))
-summary(GLMMfig3AL_mean)
-r.squaredGLMM(GLMMfig3AL_mean)
-
-# Combine into one figure
-fig3 <- plot_grid(fig3_U, fig3_A, fig3_L, fig3_AL,
-                  nrow = 2,
-                  align = "h",
-                  rel_widths = c(1.1, 0.9),
-                  labels = NULL)
-fig3
-ggsave("figs/fig3.pdf", height = 90, width = 90, units = "mm", dpi = 300)
-
-## TODO change text and point sizes, fit linear mixed effects model, get prediction intervals from lme
-
-#### MST ~ L, max vs normal ####
-combined_effort <- d_combine_swimming_summarized %>% 
-  filter(Species != "Balaenoptera physalus") %>% 
-  mutate(sp_abbr = abbr_binom(Species))
-fig4 <- combined_effort %>% 
-  filter(mean_TPM < 1.6) %>% 
-  ggplot(aes(`Total Length (m)`, mean_TPM, color = sp_abbr)) +
-  geom_point(aes(shape = effort_type)) +
-  geom_smooth(method = "lm", aes(color = effort_type, linetype = effort_type)) +
-  scale_color_manual(values = c(`B. bonaerensis` = "#009E73",
-                                `M. novaeangliae` = "#D55E00",
-                                `B. musculus` = "#0072B2",
-                                Normal = "black", Max = "black")) +
-  scale_shape_manual(values = c(Normal = 16, Max = 1)) +
-  scale_linetype_manual(values = c(Normal = "solid", Max = "longdash")) +
-  labs(x = bquote('Total Length (m)'),
-       y = bquote('Mass-Specific Thrust'~(N~kg^-1))) +
-  theme_minimal() +
-  theme(legend.position = "none",
-        panel.grid.minor = element_blank())
-ggsave("figs/fig4.pdf", height = 90, width = 90, units = "mm", dpi = 300)
-fig4
-
-# Stats
-# basic linear regression
-stats4max <- lm(mean_TPM ~ `Total Length (m)`, 
-                data = filter(d_combine_swimming_summarized, 
-                              effort_type == "Max", Species != "Balaenoptera physalus"))
-summary(stats4max)
-
-# Generalized linear mixed model
-GLMM4max_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
-                      data = filter(d_combine_swimming_summarized, 
-                                    effort_type == "Max", Species != "Balaenoptera physalus"))
-summary(GLMM4max_mean)
-r.squaredGLMM(GLMM4max_mean)
-
-# Stats
-# basic linear regression
-stats4normal <- lm(mean_TPM ~ `Total Length (m)`, 
-                   data = filter(d_combine_swimming_summarized, 
-                                 effort_type == "Max", Species != "Balaenoptera physalus"))
-summary(stats4normal)
-
-# Generalized linear mixed model
-GLMM4normal_mean <- lmer(log(mean_TPM) ~ `Total Length (m)` + (1|Species), 
-                         data = filter(d_combine_swimming_summarized, 
-                                       effort_type == "Normal", Species != "Balaenoptera physalus"))
-summary(GLMM4normal_mean)
-r.squaredGLMM(GLMM4normal_mean)
-
-## TODO fit LME, get prediction intervals, change text and point sizes
-
-#### Prop Eff ~ U, L ####
-fig5_U <- normal_effort %>% 
-  ggplot(aes(mean_speed, mean_E)) +
-  geom_point(aes(color = sp_abbr)) +
-  geom_smooth(method = "lm", color = "black") +
-  scale_color_manual(values = pal) +
-  labs(x = bquote('Speed'~(m~s^-1)),
-       y = "Propulsive Efficiency") +
-  expand_limits(y = c(0.75, 1)) +
-  theme_minimal() +
-  theme(legend.position = "none",
-        panel.grid.minor = element_blank())
-fig5_U
-
-# Stats
-# basic linear regression
-statsfig5U <- lm(mean_E ~ mean_speed, 
-                 data = filter(normal_effort, Species != "Balaenoptera physalus"))
-summary(statsfig5U)
-
-# Generalized linear mixed model
-GLMM4fig5U_mean <- lmer(mean_E ~ mean_speed + (1|Species), 
-                        data = filter(normal_effort, Species != "Balaenoptera physalus"))
-summary(GLMM4fig5U_mean)
-r.squaredGLMM(GLMM4fig5U_mean)
-
-
-fig5_L <- normal_effort %>% 
-  ggplot(aes(`Total Length (m)`, mean_E)) +
-  geom_point(aes(color = sp_abbr)) +
-  geom_smooth(method = "lm", color = "black") +
-  scale_color_manual(values = pal) +
-  expand_limits(y = c(0.75, 1)) +
-  theme_minimal() +
-  theme(axis.title.y = element_blank(),
-        legend.position = "none",
-        panel.grid.minor = element_blank())
-fig5_L
-
-# Stats
-# basic linear regression
-statsfig5L <- lm(mean_E ~ `Total Length (m)`, 
-                 data = filter(normal_effort, Species != "Balaenoptera physalus"))
-summary(statsfig5L)
-
-
-# Generalized linear mixed model
-GLMM4fig5L_mean <- lmer(mean_E ~ `Total Length (m)` + (1|Species), 
-                        data = filter(normal_effort, Species != "Balaenoptera physalus"))
-summary(GLMM4fig5L_mean)
-r.squaredGLMM(GLMM4fig5L_mean)
-
-
-fig5 <- plot_grid(fig5_U, fig5_L,
-                  nrow = 1,
-                  align = "h",
-                  labels = NULL)
-ggsave("figs/fig5.pdf", height = 90, width = 180, units = "mm", dpi = 300)
-fig5
-
-## TODO LME, play with sizes/dimensions
-
-#### Drag ~ L w/ CFD ####
+#### Extra - Drag ~ L w/ CFD ####
 potvin_cfd <- read_csv("potvin_cfd.csv")
 fig6 <- ggplot(normal_effort, aes(`Total Length (m)`, mean_drag)) +
   geom_point(aes(color = sp_abbr)) +
@@ -424,26 +455,6 @@ summary(GLMM4fig6Jean_mean)
 r.squaredGLMM(GLMM4fig6Jean_mean)
 
 ## TODO y'know
-
-#### Prop Eff ~ L w/ Other Species ####
-fish_prop_eff <- read_csv("Propulsive Eff All Species.csv")
-fig7 <- ggplot(fish_prop_eff, aes(`Total Length (m)`, `Prop Eff (Max)`)) +
-  geom_point(aes(color = Group)) +
-  expand_limits(y = c(0, 1)) +
-  labs(y = "Propulsive Efficiency") +
-  scale_color_manual(values = pal2) +
-  theme_minimal() +
-  theme(legend.position = "right",
-        panel.grid.minor = element_blank())
-ggsave("figs/fig7.pdf", height = 90, width = 90, units = "mm", dpi = 300)
-fig7
-
-
-
-
-#### Extra/Test Figures (Not Used In Paper) ####
-
-
 
 
 #### Extra - Prop Eff ~ U (Smoothed Lines + Fish 1998 Data) ####
