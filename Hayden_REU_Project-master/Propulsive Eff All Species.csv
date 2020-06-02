@@ -1,0 +1,22 @@
+Species,Common Name,Speed,Prop Eff (Max),Total Length (m),Source,Group,Type of Swimming,Notes
+Homo sapien,Human,0.95 m/s,0.29,2.38,von Loebbecke et al. 2009,Human,Paddling (Drag-based),
+Ondatra zibethicus,Muskrat,0.75 m/s,0.33,0.44,Fish 1984,Rodent,Paddling (Drag-based),
+Pterophyllum eimekei,Freshwater Angelfish,0.04 m/s,0.16,0.08,Blake 1980 and Blake 1979,Fish,Paddling (Drag-based),
+Danio rerio,Zebra Danio,Multiple,0.8,0.0315,McCutchen 1975,Fish,Undulatory (Sub-Carangiform),
+Cymatogaster aggregata,Shiner Perch,0.57 m/s,0.65,0.143,Webb 1975,Fish,Undulatory (Sub-Carangiform),
+Oncorhynchus mykiss,Rainbow Trout,Ucrit,0.75,0.293,Webb 1975,Fish,Undulatory (Sub-Carangiform),
+Euthynnus affinis,Mackerel Tuna (Kawakawa),1.52 m/s,0.9,0.4,Magnuson 1978,Fish,Undulatory (Thunniform),
+Pusa hispida,Ringed Seal,0.75 m/s,0.88,1.03,Fish et al. 1988,Pinniped,Undulatory (Thunniform),
+Pagophilus groenlandicus,Harp Seal,1.04 m/s,0.87,1.43,Fish et al. 1988,Pinniped,Undulatory (Thunniform),
+Trichechus manatus,American Manatee,0.3 l/s,0.83,3.23,Kojeszewski and Fish 2007,Sirenian,Undulatory (Thunniform),
+Delphinapterus leucas,Beluga Whale,3 m/s,0.84,3.64,Fish 1998a,Odontocete,Undulatory (Thunniform),
+Lagenorhynchus obliquidens,Pacific White-Sided Dolphin,5.3 m/s,0.89,2,"Webb 1975, Yates 1983, Blickhan and Cheng 1994",Odontocete,Undulatory (Thunniform),Average of Three Paper Values (All sourced from same place)
+Orcinus orca,Killer Whale,6.5 m/s,0.88,4.74,Fish 1998a,Odontocete,Undulatory (Thunniform),
+Pseudorca crassidens,False Killer Whale,3.8 m/s,0.9,3.75,Fish 1998a,Odontocete,Undulatory (Thunniform),
+Sotalia guianensis,Guiana Dolphin,2.4 m/s,0.83,1.9,Blickhan and Cheng 1994,Odontocete,Undulatory (Thunniform),
+Tursiops truncatus,Common Bottlenose Dolphin,2.4 m/s,0.78,2.5,Blickhan and Cheng 1994,Odontocete,Undulatory (Thunniform),Two Good Values For Same Species
+Tursiops truncatus,Common Bottlenose Dolphin,3.8 m/s,0.86,2.61,Fish 1998a,Odontocete,Undulatory (Thunniform),Two Good Values For Same Species
+Balaenoptera physalus,Fin Whale,8 m/s,0.87,14.5,Bose and Lien 1989,Mysticete,Undulatory (Thunniform),
+Balaenoptera bonaerensis,Minke Whale,Calculate,0.92,7.3,Our Data,Mysticete,Undulatory (Thunniform),
+Megaptera Novaeangliae,Humpback Whale,Calculate,0.901,11.09,Our Data,Mysticete,Undulatory (Thunniform),
+Balaenoptera Musculus,Blue Whale,Calculate,0.851,22.5,Our Data,Mysticete,Undulatory (Thunniform),
